@@ -139,7 +139,7 @@ final class SKSceneCoordinator {
 
 /// Bounded, redacted lifecycle markers, never host content. The owned TestHost reads
 /// the same defaults key for its report, so the key is shared across the two targets.
-private enum SKRuntimeDiagnostics {
+enum SKRuntimeDiagnostics {
     static let eventsKey = "com.moraxyc.SandboxArk.runtime.events"
 
     static func record(_ event: String) {

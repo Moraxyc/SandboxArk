@@ -39,9 +39,40 @@ dylib 文件名保持小写 `sandboxark.dylib`。
 
 ## 测试宿主
 
-项目自带的 `SandboxArkTestHost.ipa` 用来验证注入和入口行为：界面上有宿主点击计数和 **Copy Diagnostics**。点 Copy Diagnostics 会把一份脱敏报告复制到剪贴板，内容包括宿主点击次数、注入的 dylib 相对加载路径、Scene 与窗口状态，以及运行时的生命周期事件。报告不含 UDID、序列号、设备名、Team ID、凭据和绝对路径。
+项目自带的 `SandboxArkTestHost.ipa` 用来验证注入、入口和浏览行为：
 
-## 浏览与备份
+- **Create Test Fixture**：在这个宿主自己的容器里生成一棵合成目录树（普通文件、嵌套目录、符号链接、FIFO、Caches / tmp / Logs / WebKit / Cookies、SandboxArk 保留目录和一个凭据目录）。它只写宿主自己的 sandbox，dylib 仍然只读。
+- **Copy Diagnostics**：把一份脱敏报告复制到剪贴板，内容包括宿主点击次数、注入的 dylib 相对加载路径、Scene 与窗口状态、最近一次浏览扫描的汇总，以及运行时的生命周期事件。报告不含 UDID、序列号、设备名、Team ID、凭据和绝对路径。
 
-- 浏览：查看当前 App 有权访问的目录、文件大小和修改时间；文本、JSON、plist 可以直接预览。
-- 备份：生成 `.sandboxark`，通过系统分享面板或「文件」App 保存到你选的位置。
+## 浏览沙盒
+
+点 **Browse Sandbox** 打开只读浏览器：
+
+- 只以当前 App 的 `NSHomeDirectory()` 为授权根；默认扫描 Documents、Library/Application Support、Library/Preferences。
+- 目录和文件显示相对路径、类型、size 和 mtime；被排除项显示原因，读不到的文件显示错误码。
+- 顶部显示扫描状态：complete / cancelled / 触顶截断，以及纳入文件数、总大小、unreadable 数和按原因汇总的 excluded 计数。
+- 预览只支持文本、JSON、plist，且最多读 256 KiB；不可预览或截断都会明确说明。预览会重新经过同一套描述符访问层打开文件。
+- Caches、tmp、Logs、SandboxArk 保留目录、Keychain / 凭据目录、符号链接和 special file（FIFO、socket、device）一律排除；WebKit 与 Cookies 需要单独 opt-in，默认关闭。
+- 遇到符号链接一律不跟随，保留目录与子目录组件逐个用描述符打开并复核类型，`..`、空组件和超长路径直接拒绝。
+- 扫描在后台线程执行，可以随时 Stop；扫描只读，不写、不删、不改宿主数据。
+
+备份（生成 `.sandboxark`）属于后续阶段，尚未实现。
+
+## 测试
+
+本机可跑的只有不依赖 Foundation / UIKit 的核心（授权根、路径解析、有界读取、排除策略、扫描器）：
+
+~~~sh
+bash tests/run-scan-tests.sh
+~~~
+
+脚本会在 `/tmp/sandboxark-scan-harness` 合成一棵目录树，用真实系统调用跑 96 项断言，覆盖路径拒绝、符号链接与目录替换不越界、FIFO 不阻塞、取消 / 条目上限 / 深度截断、以及默认排除与 opt-in。没有 `swiftc` 时会自动通过 `nix shell nixpkgs#swift` 执行。
+
+UI、注入和真机行为必须按下面的方式验证：
+
+1. `sh scripts/build.sh` 产出 `dist/SandboxArk/sandboxark.dylib` 和 `SandboxArkTestHost.ipa`。
+2. 用 Feather 把 dylib 注入 TestHost，签名并安装到 iPhone / iPad（iOS 16+、arm64）。
+3. 启动后在 TestHost 上点 **Create Test Fixture**，再三指长按 1.5 秒进入 SandboxArk，点 **Browse Sandbox**，查看扫描状态、排除原因与文本预览。
+4. 点 **Copy Diagnostics** 把报告贴回来，作为真机证据。
+
+没有真机验证前，iOS 上的 `openat` / `O_NOFOLLOW` 行为一律标 unverified。

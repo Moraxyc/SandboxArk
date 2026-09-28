@@ -1,5 +1,3 @@
-import Foundation
-
 /// Stable error domain shared by every module boundary.
 let SKErrorDomain = "SKErrorDomain"
 
@@ -93,12 +91,12 @@ enum SKErrorCode: String, Sendable {
 /// `stage` and `recoveryState` use the vocabularies defined by the owning engines.
 struct SKError: Error, Sendable {
     let code: SKErrorCode
-    var operationID: String?
-    var stage: String?
-    var relativePath: String?
+    var operationID: String? = nil
+    var stage: String? = nil
+    var relativePath: String? = nil
     var retryable: Bool = false
-    var userAction: String?
-    var underlyingCode: Int32?
-    var recoveryState: String?
-    var reason: String?
+    var userAction: String? = nil
+    var underlyingCode: Int32? = nil
+    var recoveryState: String? = nil
+    var reason: String? = nil
 }

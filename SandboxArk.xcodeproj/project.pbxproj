@@ -46,6 +46,7 @@
 		0FA11CE00002000000000037 /* HostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000037 /* HostViewController.swift */; };
 		0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */; };
 		0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */; };
+		0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,6 +92,7 @@
 		0FA11CE00001000000000040 /* sandboxark.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = sandboxark.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FA11CE00001000000000041 /* SandboxArkTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SandboxArkTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostDiagnostics.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostBrowseFixture.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -298,6 +300,7 @@
 				0FA11CE00001000000000036 /* SceneDelegate.swift */,
 				0FA11CE00001000000000037 /* HostViewController.swift */,
 				0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */,
+				0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */,
 				0FA11CE00001000000000039 /* Info.plist */,
 			);
 			path = SandboxArkTestHost;
@@ -417,6 +420,7 @@
 				0FA11CE00002000000000037 /* HostViewController.swift in Sources */,
 				0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */,
 				0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */,
+				0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

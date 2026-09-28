@@ -9,4 +9,10 @@ enum SKReservedPaths {
     static let stagingRoot = "tmp/SandboxArk"
 
     static let all = [applicationSupport, stagingRoot]
+
+    /// True when a home-relative path is SandboxArk's own state, so it can never be a
+    /// backup source, an archive member or a restore target.
+    static func isReserved(homeRelativePath path: String) -> Bool {
+        all.contains { SKSecurityPolicy.path(path, matchesPrefix: $0) }
+    }
 }

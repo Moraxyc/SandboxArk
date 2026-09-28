@@ -8,6 +8,8 @@ import UIKit
 enum SKTestHostDiagnostics {
     // Shared with SKSceneCoordinator in the injected dylib; the two targets do not link.
     static let eventsKey = "com.moraxyc.SandboxArk.runtime.events"
+    // Written by SKSandboxBrowser after each scan; counts only, never paths.
+    static let browseSummaryKey = "com.moraxyc.SandboxArk.browse.summary"
 
     static func record(_ event: String) {
         let defaults = UserDefaults.standard
@@ -43,6 +45,7 @@ enum SKTestHostDiagnostics {
         }
         lines.append(contentsOf: summaries.sorted())
         lines.append("host.tapCount: \(hostTapCount)")
+        lines.append("browse.summary: \(UserDefaults.standard.string(forKey: browseSummaryKey) ?? "none")")
         lines.append("events.newestFirst:")
         lines.append(contentsOf: (UserDefaults.standard.stringArray(forKey: eventsKey) ?? []).reversed())
         return lines.joined(separator: "\n")

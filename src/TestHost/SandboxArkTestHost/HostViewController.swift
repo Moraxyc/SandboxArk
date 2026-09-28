@@ -24,6 +24,10 @@ final class HostViewController: UIViewController {
         tapButton.setTitle("Tap TestHost", for: .normal)
         tapButton.addTarget(self, action: #selector(tap), for: .touchUpInside)
 
+        let fixtureButton = UIButton(type: .system)
+        fixtureButton.setTitle("Create Test Fixture", for: .normal)
+        fixtureButton.addTarget(self, action: #selector(createFixture), for: .touchUpInside)
+
         let copyButton = UIButton(type: .system)
         copyButton.setTitle("Copy Diagnostics", for: .normal)
         copyButton.addTarget(self, action: #selector(copyDiagnostics), for: .touchUpInside)
@@ -34,7 +38,7 @@ final class HostViewController: UIViewController {
         statusLabel.textAlignment = .center
         statusLabel.numberOfLines = 0
 
-        let stack = UIStackView(arrangedSubviews: [title, countLabel, tapButton, copyButton, statusLabel])
+        let stack = UIStackView(arrangedSubviews: [title, countLabel, tapButton, fixtureButton, copyButton, statusLabel])
         stack.axis = .vertical
         stack.alignment = .center
         stack.spacing = 20
@@ -52,6 +56,14 @@ final class HostViewController: UIViewController {
         tapCount += 1
         countLabel.text = "TestHost taps: \(tapCount)"
         SKTestHostDiagnostics.record("host_tapped")
+    }
+
+    @objc private func createFixture() {
+        let report = SKTestHostBrowseFixture.create(in: URL(fileURLWithPath: NSHomeDirectory()))
+        SKTestHostDiagnostics.record(report.summary)
+        statusLabel.text = report.failures.isEmpty
+            ? "Fixture created: \(report.directories) folders, \(report.files) files, \(report.links) links."
+            : "Fixture created with \(report.failures.count) failures."
     }
 
     @objc private func copyDiagnostics() {
