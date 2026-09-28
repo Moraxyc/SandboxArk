@@ -37,6 +37,10 @@ dylib 文件名保持小写 `sandboxark.dylib`。
 
 启动 App 后，在屏幕上三指长按约 1.5 秒，SandboxArk 的窗口会在当前窗口打开。关掉窗口后，App 回到原来的焦点状态。
 
+## 测试宿主
+
+项目自带的 `SandboxArkTestHost.ipa` 用来验证注入和入口行为：界面上有宿主点击计数和 **Copy Diagnostics**。点 Copy Diagnostics 会把一份脱敏报告复制到剪贴板，内容包括宿主点击次数、注入的 dylib 相对加载路径、Scene 与窗口状态，以及运行时的生命周期事件。报告不含 UDID、序列号、设备名、Team ID、凭据和绝对路径。
+
 ## 浏览与备份
 
 - 浏览：查看当前 App 有权访问的目录、文件大小和修改时间；文本、JSON、plist 可以直接预览。

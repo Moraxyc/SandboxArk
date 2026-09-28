@@ -45,6 +45,7 @@
 		0FA11CE00002000000000036 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000036 /* SceneDelegate.swift */; };
 		0FA11CE00002000000000037 /* HostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000037 /* HostViewController.swift */; };
 		0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */; };
+		0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +90,7 @@
 		0FA11CE00001000000000039 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0FA11CE00001000000000040 /* sandboxark.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = sandboxark.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FA11CE00001000000000041 /* SandboxArkTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SandboxArkTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostDiagnostics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -295,6 +297,7 @@
 				0FA11CE00001000000000035 /* AppDelegate.swift */,
 				0FA11CE00001000000000036 /* SceneDelegate.swift */,
 				0FA11CE00001000000000037 /* HostViewController.swift */,
+				0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */,
 				0FA11CE00001000000000039 /* Info.plist */,
 			);
 			path = SandboxArkTestHost;
@@ -413,6 +416,7 @@
 				0FA11CE00002000000000036 /* SceneDelegate.swift in Sources */,
 				0FA11CE00002000000000037 /* HostViewController.swift in Sources */,
 				0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */,
+				0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -558,7 +562,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = src/TestHost/SandboxArkTestHost/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
-				PRODUCT_BUNDLE_IDENTIFIER = org.sandboxark.TestHost;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moraxyc.SandboxArk.TestHost;
 				PRODUCT_NAME = SandboxArkTestHost;
 				SWIFT_VERSION = 6.0;
 			};
@@ -573,7 +577,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = src/TestHost/SandboxArkTestHost/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
-				PRODUCT_BUNDLE_IDENTIFIER = org.sandboxark.TestHost;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moraxyc.SandboxArk.TestHost;
 				PRODUCT_NAME = SandboxArkTestHost;
 				SWIFT_VERSION = 6.0;
 			};

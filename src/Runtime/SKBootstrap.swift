@@ -6,4 +6,7 @@
 /// before UIApplication or any scene exists.
 @_cdecl("SandboxArkBootstrap")
 func SandboxArkBootstrap() {
+    Task { @MainActor in
+        SKSceneCoordinator.shared.start()
+    }
 }
