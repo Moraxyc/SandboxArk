@@ -36,7 +36,7 @@ enum SKTestHostBrowseFixture {
         ("Library/Application Support/app.sqlite", Data("SQLite format 3\u{0}".utf8)),
         ("Library/Application Support/SandboxArk/ownership-marker", Data("reserved-fixture\n".utf8)),
         ("Library/Application Support/.ssh/id_ed25519", Data("fixture-credential\n".utf8)),
-        ("Library/Preferences/com.moraxyc.SandboxArkTestHost.plist", plist),
+        ("Library/Preferences/com.moraxyc.SandboxArk.Fixture.plist", plist),
         ("Library/Caches/rebuildable.cache", Data(repeating: 0x42, count: 2048)),
         ("Library/Logs/sandboxark-testhost.log", Data("fixture log line\n".utf8)),
         ("Library/WebKit/session-state", Data("fixture webkit state\n".utf8)),

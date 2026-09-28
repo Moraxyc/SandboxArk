@@ -113,8 +113,12 @@ enum SKPathResolver {
         }
         defer { closedir(stream) }
 
-        errno = 0
-        while let entry = readdir(stream) {
+        // `errno` is cleared before every `readdir`, not once before the loop: the
+        // caller's body performs its own syscalls, and a failure there would otherwise
+        // be misread as the end of the directory failing.
+        while true {
+            errno = 0
+            guard let entry = readdir(stream) else { break }
             guard let name = name(of: entry) else {
                 if !body(.unrepresentableName) { return }
                 continue
@@ -147,8 +151,7 @@ enum SKPathResolver {
         var buffer = [CChar](repeating: 0, count: canonicalPathBufferBytes)
         let resolved = path.withCString { realpath($0, &buffer) }
         guard resolved != nil else { return nil }
-        let bytes = buffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }
-        return String(validating: bytes, as: UTF8.self)
+        return String(validatingUTF8: buffer)
     }
 
     // MARK: - Errors and cleanup
@@ -261,7 +264,7 @@ enum SKPathResolver {
     private static func name(of entry: UnsafeMutablePointer<dirent>) -> String? {
         withUnsafeBytes(of: entry.pointee.d_name) { raw in
             guard let base = raw.baseAddress else { return nil }
-            return String(validatingCString: base.assumingMemoryBound(to: CChar.self))
+            return String(validatingUTF8: base.assumingMemoryBound(to: CChar.self))
         }
     }
 }

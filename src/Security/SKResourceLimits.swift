@@ -21,4 +21,15 @@ enum SKResourceLimits {
     /// A preview reads one bounded buffer and never the whole file.
     static let maxPreviewBytes = 256 * 1024
     static let previewChunkBytes = 64 * 1024
+
+    /// Backup space budget. The reserve keeps the container from being filled to its last byte.
+    static let backupMinimumFreeBytes: Int64 = 256 * 1024 * 1024
+    static let backupManifestFloorBytes: Int64 = 4096
+    /// Per-root manifest summary, excluding the shared per-file index.
+    static let backupManifestBytesPerRoot: Int64 = 2048
+    /// JSON keys, quotes and a 64-character digest around each index entry's path.
+    static let backupHashEntryOverheadBytes: Int64 = 192
+    static let backupHashIndexFloorBytes: Int64 = 4096
+    /// Staging and archive files, before any member data.
+    static let backupPerTransactionOverheadBytes: Int64 = 64 * 1024
 }

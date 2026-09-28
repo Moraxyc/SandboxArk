@@ -60,15 +60,7 @@ dylib 文件名保持小写 `sandboxark.dylib`。
 
 ## 测试
 
-本机可跑的只有不依赖 Foundation / UIKit 的核心（授权根、路径解析、有界读取、排除策略、扫描器）：
-
-~~~sh
-bash tests/run-scan-tests.sh
-~~~
-
-脚本会在 `/tmp/sandboxark-scan-harness` 合成一棵目录树，用真实系统调用跑 96 项断言，覆盖路径拒绝、符号链接与目录替换不越界、FIFO 不阻塞、取消 / 条目上限 / 深度截断、以及默认排除与 opt-in。没有 `swiftc` 时会自动通过 `nix shell nixpkgs#swift` 执行。
-
-UI、注入和真机行为必须按下面的方式验证：
+仓库当前不带自动化测试；UI、注入和真机行为必须按下面的方式验证：
 
 1. `sh scripts/build.sh` 产出 `dist/SandboxArk/sandboxark.dylib` 和 `SandboxArkTestHost.ipa`。
 2. 用 Feather 把 dylib 注入 TestHost，签名并安装到 iPhone / iPad（iOS 16+、arm64）。
