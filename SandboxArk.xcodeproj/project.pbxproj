@@ -47,6 +47,11 @@
 		0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */; };
 		0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */; };
 		0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */; };
+		0FA11CE00002000000000041 /* SKZipCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000044 /* SKZipCompression.swift */; };
+		0FA11CE00002000000000042 /* SKZipContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000045 /* SKZipContainer.swift */; };
+		0FA11CE00002000000000043 /* SKZipTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000046 /* SKZipTimestamp.swift */; };
+		0FA11CE00002000000000044 /* SKJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000047 /* SKJSON.swift */; };
+		0FA11CE00002000000000045 /* SKManifestDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000048 /* SKManifestDocument.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +98,11 @@
 		0FA11CE00001000000000041 /* SandboxArkTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SandboxArkTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostDiagnostics.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostBrowseFixture.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000044 /* SKZipCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipCompression.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000045 /* SKZipContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipContainer.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000046 /* SKZipTimestamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipTimestamp.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000047 /* SKJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKJSON.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000048 /* SKManifestDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKManifestDocument.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,7 +227,10 @@
 		0FA11CE00000000000000017 /* Archive */ = {
 			isa = PBXGroup;
 			children = (
+				0FA11CE00001000000000044 /* SKZipCompression.swift */,
+				0FA11CE00001000000000045 /* SKZipContainer.swift */,
 				0FA11CE00001000000000021 /* SKZipReader.swift */,
+				0FA11CE00001000000000046 /* SKZipTimestamp.swift */,
 				0FA11CE00001000000000022 /* SKZipWriter.swift */,
 			);
 			path = Archive;
@@ -227,6 +240,8 @@
 			isa = PBXGroup;
 			children = (
 				0FA11CE00001000000000023 /* SKManifest.swift */,
+				0FA11CE00001000000000048 /* SKManifestDocument.swift */,
+				0FA11CE00001000000000047 /* SKJSON.swift */,
 				0FA11CE00001000000000024 /* SKBackupFormatReaderV1.swift */,
 				0FA11CE00001000000000025 /* SKNormalizedBackup.swift */,
 			);
@@ -396,7 +411,12 @@
 				0FA11CE00002000000000020 /* SKHostQuiescenceGate.swift in Sources */,
 				0FA11CE00002000000000021 /* SKZipReader.swift in Sources */,
 				0FA11CE00002000000000022 /* SKZipWriter.swift in Sources */,
+				0FA11CE00002000000000041 /* SKZipCompression.swift in Sources */,
+				0FA11CE00002000000000042 /* SKZipContainer.swift in Sources */,
+				0FA11CE00002000000000043 /* SKZipTimestamp.swift in Sources */,
 				0FA11CE00002000000000023 /* SKManifest.swift in Sources */,
+				0FA11CE00002000000000045 /* SKManifestDocument.swift in Sources */,
+				0FA11CE00002000000000044 /* SKJSON.swift in Sources */,
 				0FA11CE00002000000000024 /* SKBackupFormatReaderV1.swift in Sources */,
 				0FA11CE00002000000000025 /* SKNormalizedBackup.swift in Sources */,
 				0FA11CE00002000000000026 /* SKSHA256.swift in Sources */,
@@ -524,6 +544,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_DYLIB_INSTALL_NAME = "@rpath/sandboxark.dylib";
 				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = sandboxark;
 				SKIP_INSTALL = NO;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -546,6 +567,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_DYLIB_INSTALL_NAME = "@rpath/sandboxark.dylib";
 				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = sandboxark;
 				SKIP_INSTALL = NO;
 				SUPPORTED_PLATFORMS = iphoneos;

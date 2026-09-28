@@ -84,11 +84,9 @@ enum SKErrorCode: String, Sendable {
     }
 }
 
-/// Structured error crossing module boundaries.
-///
-/// Paths stay sandbox-relative; absolute host paths, file contents and credential
-/// values never appear here, because they would reach logs and user-facing reports.
-/// `stage` and `recoveryState` use the vocabularies defined by the owning engines.
+/// Structured error crossing module boundaries: paths stay sandbox-relative, and absolute
+/// host paths, file contents and credential values never appear here because they would
+/// reach logs and user reports. `stage` and `recoveryState` use the owning engines' vocabularies.
 struct SKError: Error, Sendable {
     let code: SKErrorCode
     var operationID: String? = nil

@@ -4,20 +4,18 @@ import Darwin
 import Glibc
 #endif
 
-/// Bounded-buffer file reads for hashing and archiving.
-///
-/// Files are never loaded whole into memory, and the buffer budget is fixed rather
-/// than derived from file size, so peak memory stays flat for multi-gigabyte inputs.
+/// Bounded-buffer file reads for hashing and archiving. Files are never loaded whole, and
+/// the fixed buffer budget keeps peak memory flat regardless of file size.
 enum SKStreamingIO {
     struct BoundedRead: Sendable {
         let bytes: [UInt8]
-        /// True when the file is longer than the requested limit; the extra bytes are
-        /// never retained.
+        /// True when the file is longer than the requested limit; the extra bytes are never
+        /// retained.
         let truncated: Bool
     }
 
-    /// Reads at most `limit` bytes from an already-verified descriptor. The caller owns
-    /// the descriptor: this layer never opens, resolves or closes a path.
+    /// Reads at most `limit` bytes from an already-verified descriptor; this layer never
+    /// opens, resolves or closes a path.
     static func read(from descriptor: Int32,
                      upTo limit: Int,
                      chunkBytes: Int = SKResourceLimits.previewChunkBytes) throws -> BoundedRead {

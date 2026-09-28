@@ -1,11 +1,9 @@
 /// Policy decisions shared by scanning, archiving and restore: Keychain exclusion,
 /// per-directory opt-in, entitlement checks and reserved-root ownership conflicts.
 enum SKSecurityPolicy {
-    /// Addresses in the sandbox are compared the way the volume compares them. iOS
-    /// containers live on case-insensitive volumes, so `library/caches` and
-    /// `Library/Caches` are the same directory and a rule that only matches one
-    /// spelling is not a rule. Comparison stays on ASCII bytes: that is the folding the
-    /// volume performs, and it does not depend on locale or Unicode tables.
+    /// Addresses in the sandbox are compared the way the volume compares them: iOS
+    /// containers live on case-insensitive volumes, so comparison stays on ASCII bytes,
+    /// which is the folding the volume performs and does not depend on locale.
     static func equalsIgnoringASCIICase(_ lhs: String, _ rhs: String) -> Bool {
         guard lhs.utf8.count == rhs.utf8.count else { return false }
         for (left, right) in zip(lhs.utf8, rhs.utf8) where foldASCIICase(left) != foldASCIICase(right) {

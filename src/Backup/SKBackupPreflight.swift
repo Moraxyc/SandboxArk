@@ -15,9 +15,9 @@ enum SKBackupPreflight {
         var archivePathPrefix = SKManifest.homeRoot
         var localHeaderBytes: Int64 = 30
         var centralHeaderBytes: Int64 = 46
-        /// Emitted on every member so a size crossing the 32-bit boundary never changes
-        /// the local layout.
-        var zip64ExtraFieldBytes: Int64 = 20
+        /// Worst case per member: local and central ZIP64 extra fields, emitted only for
+        /// members that need them. Over-reserving beats meeting the reserve mid-backup.
+        var zip64ExtraFieldBytes: Int64 = 48
         var manifestBytesPerRoot = SKResourceLimits.backupManifestBytesPerRoot
         var manifestFloorBytes = SKResourceLimits.backupManifestFloorBytes
         var hashEntryOverheadBytes = SKResourceLimits.backupHashEntryOverheadBytes
@@ -50,8 +50,8 @@ enum SKBackupPreflight {
         case blocked(Estimate, SKError)
     }
 
-    /// Builds the worst-case estimate from the members a scan would actually archive,
-    /// falling back to the uncompressed total when a deflated size cannot be bounded.
+    /// Builds the worst-case estimate from the scanned members, falling back to the
+    /// uncompressed total.
     static func estimate(report: SKScanReport, budget: Budget = .standard) -> Estimate {
         let prefixBytes = Int64(budget.archivePathPrefix.utf8.count + 1)
         var includedFiles = 0
@@ -76,7 +76,7 @@ enum SKBackupPreflight {
 
         let members = Int64(includedFiles + directoryMembers)
         let perMemberHeader = budget.localHeaderBytes + budget.centralHeaderBytes
-            + 2 * budget.zip64ExtraFieldBytes
+            + budget.zip64ExtraFieldBytes
         let archiveBytes = sourceBytes + members * perMemberHeader + nameBytes
             + budget.perTransactionOverheadBytes
         let manifestBytes = budget.manifestFloorBytes
@@ -92,8 +92,7 @@ enum SKBackupPreflight {
                         reserveBytes: budget.minimumFreeBytes)
     }
 
-    /// Free space on the volume holding this root, read through the already open
-    /// directory descriptor.
+    /// Free space on the volume holding this root, read through the already open descriptor.
     static func availableBytes(home: SKAuthorizedRoot) throws -> Int64 {
         var fileSystem = statvfs()
         guard fstatvfs(home.descriptor, &fileSystem) == 0 else {

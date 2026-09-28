@@ -30,11 +30,9 @@ final class SKScanCancellation: @unchecked Sendable {
     }
 }
 
-/// Read-only browse of the roots the current process is authorized to read.
-///
-/// Paths are shown relative to their root. The listing and the preview both go through
-/// `SKPathResolver`, so nothing here can reach an object the scanner could not reach,
-/// and a preview reads one bounded buffer instead of the whole file.
+/// Read-only browse of the roots the current process is authorized to read. Paths are shown
+/// relative to their root, and listing and preview both go through `SKPathResolver`, so
+/// nothing here reaches an object the scanner could not; previews read one bounded buffer.
 final class SKSandboxBrowserViewController: UITableViewController {
     private let home: SKAuthorizedRoot
     /// Only the root of the browser stack owns the descriptor's lifetime; a pushed

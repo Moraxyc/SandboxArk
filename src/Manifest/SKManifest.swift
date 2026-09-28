@@ -1,7 +1,5 @@
-/// SandboxArk/1 wire-format identity and container layout.
-///
-/// `formatVersion` tracks the archive contract and stays independent of the
-/// SandboxArk release version, so a format bump never needs a product release.
+/// SandboxArk/1 wire-format identity and container layout. `formatVersion` tracks the
+/// archive contract, independent of the product version, so a format bump needs no release.
 enum SKManifest {
     static let format = "SandboxArk"
     static let formatVersion = 1

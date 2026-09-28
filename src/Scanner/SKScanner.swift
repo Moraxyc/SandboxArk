@@ -4,12 +4,9 @@ import Darwin
 import Glibc
 #endif
 
-/// Recursive read-only discovery over authorized roots, with per-root completeness
-/// evidence, cancellation and resource limits.
-///
-/// Every item is reached through a verified parent descriptor, and an item that cannot
-/// be inspected becomes an entry carrying its error rather than an abort, so one bad
-/// file never hides the rest of the root.
+/// Recursive read-only discovery over authorized roots, with per-root completeness evidence,
+/// cancellation and resource limits. Every item is reached through a verified parent
+/// descriptor, and an item that cannot be inspected becomes an error entry, never an abort.
 enum SKScanner {
     /// Roots a standard scan covers, in display order.
     static let standardRootPaths = ["Documents", "Library/Application Support", "Library/Preferences"]

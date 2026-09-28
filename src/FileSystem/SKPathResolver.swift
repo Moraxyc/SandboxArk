@@ -5,10 +5,8 @@ import Glibc
 #endif
 
 /// Component-wise no-follow path resolution under an authorized root and mapping to
-/// archive-relative paths.
-///
-/// Path strings alone are not a security boundary; every component is opened relative
-/// to a verified parent descriptor.
+/// archive-relative paths. Path strings alone are not a security boundary; every component
+/// is opened relative to a verified parent descriptor.
 enum SKPathResolver {
     /// Directories are opened read-only with `O_NOFOLLOW`; the type check comes from
     /// `fstat` on the resulting descriptor rather than from `O_DIRECTORY` alone,
@@ -16,8 +14,8 @@ enum SKPathResolver {
     static let directoryOpenFlags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
     static let regularFileOpenFlags = O_RDONLY | O_NOFOLLOW | O_CLOEXEC
 
-    /// `realpath` needs a caller-owned buffer; the value covers both Darwin PATH_MAX
-    /// and Linux PATH_MAX without depending on either macro.
+    /// `realpath` needs a caller-owned buffer; the value covers Darwin and Linux PATH_MAX
+    /// without depending on either macro.
     private static let canonicalPathBufferBytes = 4096
 
     /// Hard bounds applied to every path string this layer accepts.
@@ -51,8 +49,8 @@ enum SKPathResolver {
             throw invalidPathError("path component is not addressable")
         }
         guard !component.utf8.contains(0) else { throw invalidPathError("path component contains NUL") }
-        // A backslash is a legal iOS filename byte, so it stays addressable for browse
-        // and preview; the archive writer rejects it separately as a member path.
+        // A backslash is a legal iOS filename byte, so it stays addressable; the archive
+        // writer rejects it separately.
         guard component.utf8.count <= limits.componentBytes else {
             throw invalidPathError("path component exceeds \(limits.componentBytes) bytes")
         }
@@ -131,11 +129,9 @@ enum SKPathResolver {
 
     // MARK: - Additional canonical check
 
-    /// Verifies that the object behind `identity` is still the object the canonical
-    /// path names, and that the canonical path is inside the root. The walk itself
-    /// cannot leave the root, so this only catches a component replaced between
-    /// `openat` and the check. A platform that cannot resolve a canonical path reports
-    /// success, because the descriptor identity remains the boundary.
+    /// Verifies the object behind `identity` still matches the canonical path and that the
+    /// path is inside the root; only a component replaced between `openat` and the check can
+    /// be caught, and a platform without a canonical path reports success.
     static func isWithinRoot(relativePath: String, identity: SKFileIdentity, canonicalRootPath: String?) -> Bool {
         guard let canonicalRootPath else { return true }
         guard let resolved = canonicalPath(ofAbsolutePath: canonicalRootPath + "/" + relativePath) else {

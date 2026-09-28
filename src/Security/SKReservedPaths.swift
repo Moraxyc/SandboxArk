@@ -1,7 +1,5 @@
-/// Host-relative paths permanently reserved for SandboxArk's own state.
-///
-/// They are never backup sources, never appear inside a `.sandboxark`, and are
-/// never restore targets.
+/// Host-relative paths permanently reserved for SandboxArk's own state: never backup
+/// sources, never inside a `.sandboxark`, never restore targets.
 enum SKReservedPaths {
     /// Long-lived private state: restore journal, snapshots, history, diagnostics.
     static let applicationSupport = "Library/Application Support/SandboxArk"

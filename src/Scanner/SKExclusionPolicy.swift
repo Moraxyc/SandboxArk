@@ -31,11 +31,9 @@ enum SKExclusionDecision: Equatable, Sendable {
     case exclude(SKExclusionReason)
 }
 
-/// Default exclude and opt-in rules: Caches, tmp and Logs are excluded, Cookies and
-/// WebKit data are opt-in per category, and reserved roots are always excluded.
-///
-/// The rule set is data so a later phase can relax exactly one category after user
-/// confirmation without changing the traversal.
+/// Default exclude and opt-in rules: Caches, tmp and Logs are excluded; Cookies and WebKit
+/// data are opt-in per category; reserved roots are always excluded. The rule set is data
+/// so a later phase can relax one category after confirmation without changing traversal.
 struct SKExclusionPolicy: Sendable {
     var optIn: Set<SKOptInCategory>
 
