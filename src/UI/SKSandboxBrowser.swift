@@ -1,10 +1,5 @@
 import UIKit
 
-/// Shared with the TestHost report, which does not link this target.
-enum SKBrowseDiagnostics {
-    static let summaryKey = "com.moraxyc.SandboxArk.browse.summary"
-}
-
 /// Cooperative cancel flag: the scan polls it between items, and it is the only state
 /// the scan thread and the main thread share.
 final class SKScanCancellation: @unchecked Sendable {
@@ -183,7 +178,6 @@ final class SKSandboxBrowserViewController: UITableViewController {
         let summary = "browse_scan;status=\(report.status.rawValue);files=\(report.includedFiles)"
             + ";bytes=\(report.includedBytes);unreadable=\(report.unreadableCount);excluded=[\(excluded)]"
         SKRuntimeDiagnostics.record(summary)
-        UserDefaults.standard.set(summary, forKey: SKBrowseDiagnostics.summaryKey)
     }
 
     // MARK: - Rows

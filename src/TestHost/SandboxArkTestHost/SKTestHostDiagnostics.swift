@@ -2,14 +2,10 @@ import Foundation
 import MachO
 import UIKit
 
-/// Minimal diagnostics for the owned TestHost. The injected dylib records its
-/// lifecycle markers into the same defaults key, and the report omits UDID, serial
-/// number, device name, Team ID, credentials and absolute paths.
+/// Minimal diagnostics for the owned TestHost. The report omits UDID, serial number,
+/// device name, Team ID, credentials and absolute paths.
 enum SKTestHostDiagnostics {
-    // Shared with SKSceneCoordinator in the injected dylib; the two targets do not link.
-    static let eventsKey = "com.moraxyc.SandboxArk.runtime.events"
-    // Written by SKSandboxBrowser after each scan; counts only, never paths.
-    static let browseSummaryKey = "com.moraxyc.SandboxArk.browse.summary"
+    static let eventsKey = "com.moraxyc.SandboxArkTestHost.events"
 
     static func record(_ event: String) {
         let defaults = UserDefaults.standard
@@ -45,7 +41,6 @@ enum SKTestHostDiagnostics {
         }
         lines.append(contentsOf: summaries.sorted())
         lines.append("host.tapCount: \(hostTapCount)")
-        lines.append("browse.summary: \(UserDefaults.standard.string(forKey: browseSummaryKey) ?? "none")")
         lines.append("events.newestFirst:")
         lines.append(contentsOf: (UserDefaults.standard.stringArray(forKey: eventsKey) ?? []).reversed())
         return lines.joined(separator: "\n")

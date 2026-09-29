@@ -14,7 +14,6 @@
 		0FA11CE00002000000000005 /* SKRootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000005 /* SKRootViewController.swift */; };
 		0FA11CE00002000000000006 /* SKSandboxBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000006 /* SKSandboxBrowser.swift */; };
 		0FA11CE00002000000000007 /* SKBackupFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000007 /* SKBackupFlow.swift */; };
-		0FA11CE00002000000000008 /* SKRestoreFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000008 /* SKRestoreFlow.swift */; };
 		0FA11CE00002000000000009 /* SKUtilityWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000009 /* SKUtilityWindow.swift */; };
 		0FA11CE00002000000000010 /* SKAuthorizedRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000010 /* SKAuthorizedRoot.swift */; };
 		0FA11CE00002000000000011 /* SKPathResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000011 /* SKPathResolver.swift */; };
@@ -23,19 +22,13 @@
 		0FA11CE00002000000000014 /* SKExclusionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000014 /* SKExclusionPolicy.swift */; };
 		0FA11CE00002000000000015 /* SKBackupCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000015 /* SKBackupCoordinator.swift */; };
 		0FA11CE00002000000000016 /* SKBackupPreflight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000016 /* SKBackupPreflight.swift */; };
-		0FA11CE00002000000000017 /* SKRestoreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000017 /* SKRestoreCoordinator.swift */; };
-		0FA11CE00002000000000018 /* SKRestorePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000018 /* SKRestorePlan.swift */; };
-		0FA11CE00002000000000019 /* SKRestoreJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000019 /* SKRestoreJournal.swift */; };
-		0FA11CE00002000000000020 /* SKHostQuiescenceGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000020 /* SKHostQuiescenceGate.swift */; };
 		0FA11CE00002000000000021 /* SKZipReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000021 /* SKZipReader.swift */; };
 		0FA11CE00002000000000022 /* SKZipWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000022 /* SKZipWriter.swift */; };
 		0FA11CE00002000000000023 /* SKManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000023 /* SKManifest.swift */; };
 		0FA11CE00002000000000024 /* SKBackupFormatReaderV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000024 /* SKBackupFormatReaderV1.swift */; };
-		0FA11CE00002000000000025 /* SKNormalizedBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000025 /* SKNormalizedBackup.swift */; };
 		0FA11CE00002000000000026 /* SKSHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000026 /* SKSHA256.swift */; };
 		0FA11CE00002000000000027 /* SKSQLiteGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000027 /* SKSQLiteGroup.swift */; };
 		0FA11CE00002000000000028 /* SKSQLiteInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000028 /* SKSQLiteInspector.swift */; };
-		0FA11CE00002000000000029 /* SKPreferencesInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000029 /* SKPreferencesInspector.swift */; };
 		0FA11CE00002000000000030 /* SKSecurityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000030 /* SKSecurityPolicy.swift */; };
 		0FA11CE00002000000000031 /* SKResourceLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000031 /* SKResourceLimits.swift */; };
 		0FA11CE00002000000000032 /* SKReservedPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000032 /* SKReservedPaths.swift */; };
@@ -44,7 +37,6 @@
 		0FA11CE00002000000000035 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000035 /* AppDelegate.swift */; };
 		0FA11CE00002000000000036 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000036 /* SceneDelegate.swift */; };
 		0FA11CE00002000000000037 /* HostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000037 /* HostViewController.swift */; };
-		0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */; };
 		0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000042 /* SKTestHostDiagnostics.swift */; };
 		0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000043 /* SKTestHostBrowseFixture.swift */; };
 		0FA11CE00002000000000041 /* SKZipCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000044 /* SKZipCompression.swift */; };
@@ -65,7 +57,6 @@
 		0FA11CE00001000000000005 /* SKRootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKRootViewController.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000006 /* SKSandboxBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKSandboxBrowser.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000007 /* SKBackupFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKBackupFlow.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000008 /* SKRestoreFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKRestoreFlow.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000009 /* SKUtilityWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKUtilityWindow.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000010 /* SKAuthorizedRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKAuthorizedRoot.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000011 /* SKPathResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKPathResolver.swift; sourceTree = "<group>"; };
@@ -74,19 +65,13 @@
 		0FA11CE00001000000000014 /* SKExclusionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKExclusionPolicy.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000015 /* SKBackupCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKBackupCoordinator.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000016 /* SKBackupPreflight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKBackupPreflight.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000017 /* SKRestoreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKRestoreCoordinator.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000018 /* SKRestorePlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKRestorePlan.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000019 /* SKRestoreJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKRestoreJournal.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000020 /* SKHostQuiescenceGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKHostQuiescenceGate.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000021 /* SKZipReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipReader.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000022 /* SKZipWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipWriter.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000023 /* SKManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKManifest.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000024 /* SKBackupFormatReaderV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKBackupFormatReaderV1.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000025 /* SKNormalizedBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKNormalizedBackup.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000026 /* SKSHA256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKSHA256.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000027 /* SKSQLiteGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKSQLiteGroup.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000028 /* SKSQLiteInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKSQLiteInspector.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000029 /* SKPreferencesInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKPreferencesInspector.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000030 /* SKSecurityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKSecurityPolicy.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000031 /* SKResourceLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKResourceLimits.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000032 /* SKReservedPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKReservedPaths.swift; sourceTree = "<group>"; };
@@ -95,7 +80,6 @@
 		0FA11CE00001000000000035 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000036 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000037 /* HostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostViewController.swift; sourceTree = "<group>"; };
-		0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKTestHostQuiescenceAdapter.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000039 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0FA11CE00001000000000040 /* sandboxark.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = sandboxark.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FA11CE00001000000000041 /* SandboxArkTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SandboxArkTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -153,12 +137,10 @@
 				0FA11CE00000000000000013 /* FileSystem */,
 				0FA11CE00000000000000014 /* Scanner */,
 				0FA11CE00000000000000015 /* Backup */,
-				0FA11CE00000000000000016 /* Restore */,
 				0FA11CE00000000000000017 /* Archive */,
 				0FA11CE00000000000000018 /* Manifest */,
 				0FA11CE00000000000000019 /* Integrity */,
 				0FA11CE00000000000000020 /* SQLite */,
-				0FA11CE00000000000000021 /* Preferences */,
 				0FA11CE00000000000000022 /* Security */,
 				0FA11CE00000000000000023 /* Logging */,
 				0FA11CE00000000000000024 /* Error */,
@@ -195,7 +177,6 @@
 				0FA11CE00001000000000005 /* SKRootViewController.swift */,
 				0FA11CE00001000000000006 /* SKSandboxBrowser.swift */,
 				0FA11CE00001000000000007 /* SKBackupFlow.swift */,
-				0FA11CE00001000000000008 /* SKRestoreFlow.swift */,
 				0FA11CE00001000000000009 /* SKUtilityWindow.swift */,
 			);
 			path = UI;
@@ -229,17 +210,6 @@
 			path = Backup;
 			sourceTree = "<group>";
 		};
-		0FA11CE00000000000000016 /* Restore */ = {
-			isa = PBXGroup;
-			children = (
-				0FA11CE00001000000000017 /* SKRestoreCoordinator.swift */,
-				0FA11CE00001000000000018 /* SKRestorePlan.swift */,
-				0FA11CE00001000000000019 /* SKRestoreJournal.swift */,
-				0FA11CE00001000000000020 /* SKHostQuiescenceGate.swift */,
-			);
-			path = Restore;
-			sourceTree = "<group>";
-		};
 		0FA11CE00000000000000017 /* Archive */ = {
 			isa = PBXGroup;
 			children = (
@@ -259,7 +229,6 @@
 				0FA11CE00001000000000048 /* SKManifestDocument.swift */,
 				0FA11CE00001000000000047 /* SKJSON.swift */,
 				0FA11CE00001000000000024 /* SKBackupFormatReaderV1.swift */,
-				0FA11CE00001000000000025 /* SKNormalizedBackup.swift */,
 			);
 			path = Manifest;
 			sourceTree = "<group>";
@@ -279,14 +248,6 @@
 				0FA11CE00001000000000028 /* SKSQLiteInspector.swift */,
 			);
 			path = SQLite;
-			sourceTree = "<group>";
-		};
-		0FA11CE00000000000000021 /* Preferences */ = {
-			isa = PBXGroup;
-			children = (
-				0FA11CE00001000000000029 /* SKPreferencesInspector.swift */,
-			);
-			path = Preferences;
 			sourceTree = "<group>";
 		};
 		0FA11CE00000000000000022 /* Security */ = {
@@ -318,7 +279,6 @@
 		0FA11CE00000000000000025 /* TestHost */ = {
 			isa = PBXGroup;
 			children = (
-				0FA11CE00001000000000038 /* SKTestHostQuiescenceAdapter.swift */,
 				0FA11CE00000000000000026 /* SandboxArkTestHost */,
 			);
 			path = TestHost;
@@ -492,7 +452,6 @@
 				0FA11CE00002000000000005 /* SKRootViewController.swift in Sources */,
 				0FA11CE00002000000000006 /* SKSandboxBrowser.swift in Sources */,
 				0FA11CE00002000000000007 /* SKBackupFlow.swift in Sources */,
-				0FA11CE00002000000000008 /* SKRestoreFlow.swift in Sources */,
 				0FA11CE00002000000000009 /* SKUtilityWindow.swift in Sources */,
 				0FA11CE00002000000000010 /* SKAuthorizedRoot.swift in Sources */,
 				0FA11CE00002000000000011 /* SKPathResolver.swift in Sources */,
@@ -501,10 +460,6 @@
 				0FA11CE00002000000000014 /* SKExclusionPolicy.swift in Sources */,
 				0FA11CE00002000000000015 /* SKBackupCoordinator.swift in Sources */,
 				0FA11CE00002000000000016 /* SKBackupPreflight.swift in Sources */,
-				0FA11CE00002000000000017 /* SKRestoreCoordinator.swift in Sources */,
-				0FA11CE00002000000000018 /* SKRestorePlan.swift in Sources */,
-				0FA11CE00002000000000019 /* SKRestoreJournal.swift in Sources */,
-				0FA11CE00002000000000020 /* SKHostQuiescenceGate.swift in Sources */,
 				0FA11CE00002000000000021 /* SKZipReader.swift in Sources */,
 				0FA11CE00002000000000022 /* SKZipWriter.swift in Sources */,
 				0FA11CE00002000000000041 /* SKZipCompression.swift in Sources */,
@@ -514,11 +469,9 @@
 				0FA11CE00002000000000045 /* SKManifestDocument.swift in Sources */,
 				0FA11CE00002000000000044 /* SKJSON.swift in Sources */,
 				0FA11CE00002000000000024 /* SKBackupFormatReaderV1.swift in Sources */,
-				0FA11CE00002000000000025 /* SKNormalizedBackup.swift in Sources */,
 				0FA11CE00002000000000026 /* SKSHA256.swift in Sources */,
 				0FA11CE00002000000000027 /* SKSQLiteGroup.swift in Sources */,
 				0FA11CE00002000000000028 /* SKSQLiteInspector.swift in Sources */,
-				0FA11CE00002000000000029 /* SKPreferencesInspector.swift in Sources */,
 				0FA11CE00002000000000030 /* SKSecurityPolicy.swift in Sources */,
 				0FA11CE00002000000000031 /* SKResourceLimits.swift in Sources */,
 				0FA11CE00002000000000032 /* SKReservedPaths.swift in Sources */,
@@ -536,7 +489,6 @@
 				0FA11CE00002000000000035 /* AppDelegate.swift in Sources */,
 				0FA11CE00002000000000036 /* SceneDelegate.swift in Sources */,
 				0FA11CE00002000000000037 /* HostViewController.swift in Sources */,
-				0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */,
 				0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */,
 				0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */,
 			);

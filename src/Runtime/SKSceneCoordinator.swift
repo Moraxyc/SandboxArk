@@ -136,20 +136,9 @@ final class SKSceneCoordinator {
     }
 }
 
-/// Bounded, redacted lifecycle markers, never host content. The owned TestHost reads
-/// the same defaults key for its report, so the key is shared across the two targets.
+/// Runtime markers are recorded by the redacted local logger.
 enum SKRuntimeDiagnostics {
-    static let eventsKey = "com.moraxyc.SandboxArk.runtime.events"
-
     static func record(_ event: String) {
-        let defaults = UserDefaults.standard
-        var events = defaults.stringArray(forKey: eventsKey) ?? []
-        events.append("\(ISO8601DateFormatter().string(from: Date())): \(event)")
-        if events.count > 100 {
-            events.removeFirst(events.count - 100)
-        }
-        defaults.set(events, forKey: eventsKey)
-
         let isError = event.contains("failed") || event.contains("error")
         SKLocalLogger.log(event: event,
                           category: "runtime",
