@@ -149,5 +149,10 @@ enum SKRuntimeDiagnostics {
             events.removeFirst(events.count - 100)
         }
         defaults.set(events, forKey: eventsKey)
+
+        let isError = event.contains("failed") || event.contains("error")
+        SKLocalLogger.log(event: event,
+                          category: "runtime",
+                          level: isError ? .error : .info)
     }
 }

@@ -959,6 +959,69 @@
           "stringUnit" : { "state" : "translated", "value" : "归档中没有该数据库" }
         }
       }
+    },
+    "Export Diagnostic Logs" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "导出诊断日志" }
+        }
+      }
+    },
+    "No Diagnostic Logs" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无诊断日志" }
+        }
+      }
+    },
+    "There are no local diagnostic logs recorded yet." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "本地尚未记录任何诊断日志。" }
+        }
+      }
+    },
+    "Diagnostic logs cover %@ (%@)." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "诊断日志涵盖 %@（%@）。" }
+        }
+      }
+    },
+    "All paths and sensitive data are redacted. Destination providers may sync diagnostics remotely." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "所有路径和敏感数据均已脱敏。分享的目标服务可能会将诊断数据同步至云端。" }
+        }
+      }
+    },
+    "Export" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "导出" }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消" }
+        }
+      }
+    },
+    "Cannot Export Diagnostics" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法导出诊断包" }
+        }
+      }
+    },
+    "SandboxArk could not prepare the diagnostic package." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 无法准备诊断数据包。" }
+        }
+      }
     }
   },
   "version" : "1.0"

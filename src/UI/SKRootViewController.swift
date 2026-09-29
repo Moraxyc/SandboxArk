@@ -6,6 +6,8 @@ import UIKit
 final class SKRootViewController: UIViewController {
     var onClose: (@MainActor () -> Void)?
 
+    private weak var exportLogsButton: UIButton?
+
     /// Keeps the identifier a diagnostics report records separate from the text the user reads,
     /// so translating this screen never renames an event.
     private enum Action {
@@ -72,7 +74,12 @@ final class SKRootViewController: UIViewController {
         browse.setTitle(String(localized: "Browse Sandbox", bundle: .sandboxark), for: .normal)
         browse.addTarget(self, action: #selector(browseTapped), for: .touchUpInside)
 
-        for button in [backup, browse] {
+        let exportLogs = UIButton(type: .system)
+        exportLogs.setTitle(String(localized: "Export Diagnostic Logs", bundle: .sandboxark), for: .normal)
+        exportLogs.addTarget(self, action: #selector(exportLogsTapped), for: .touchUpInside)
+        self.exportLogsButton = exportLogs
+
+        for button in [backup, browse, exportLogs] {
             var configuration: UIButton.Configuration = button === backup ? .filled() : .plain()
             configuration.title = button.title(for: .normal)
             configuration.buttonSize = .large
@@ -93,7 +100,7 @@ final class SKRootViewController: UIViewController {
         notice.textAlignment = .center
         notice.numberOfLines = 0
 
-        let stack = UIStackView(arrangedSubviews: [title, identity, backup, browse, notice])
+        let stack = UIStackView(arrangedSubviews: [title, identity, backup, browse, exportLogs, notice])
         stack.axis = .vertical
         stack.alignment = .fill
         stack.spacing = 24
@@ -137,6 +144,73 @@ final class SKRootViewController: UIViewController {
         let navigation = UINavigationController(rootViewController: flow)
         navigation.modalPresentationStyle = .formSheet
         present(navigation, animated: true)
+    }
+
+    @objc private func exportLogsTapped() {
+        let metadata = SKLocalLogger.exportMetadata()
+        guard metadata.hasLogs else {
+            let alert = UIAlertController(
+                title: String(localized: "No Diagnostic Logs", bundle: .sandboxark),
+                message: String(localized: "There are no local diagnostic logs recorded yet.", bundle: .sandboxark),
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: String(localized: "OK", bundle: .sandboxark), style: .default))
+            present(alert, animated: true)
+            SKRuntimeDiagnostics.record("diagnostics_export_empty")
+            return
+        }
+
+        let confirmationTitle = String(localized: "Export Diagnostic Logs", bundle: .sandboxark)
+        let coverage = String(localized: "Diagnostic logs cover \(metadata.dateRangeDescription) (\(metadata.formattedSize)).",
+                              bundle: .sandboxark)
+        let privacyNotice = String(localized: "All paths and sensitive data are redacted. Destination providers may sync diagnostics remotely.",
+                                   bundle: .sandboxark)
+        let confirmationMessage = "\(coverage)\n\n\(privacyNotice)"
+
+        let alert = UIAlertController(title: confirmationTitle,
+                                      message: confirmationMessage,
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: String(localized: "Cancel", bundle: .sandboxark),
+                                      style: .cancel) { _ in
+            SKRuntimeDiagnostics.record("diagnostics_export_cancelled")
+        })
+        alert.addAction(UIAlertAction(title: String(localized: "Export", bundle: .sandboxark),
+                                      style: .default) { [weak self] _ in
+            self?.performExportLogs()
+        })
+        present(alert, animated: true)
+        SKRuntimeDiagnostics.record("diagnostics_confirm_presented")
+    }
+
+    private func performExportLogs() {
+        do {
+            let package = try SKLocalLogger.prepareExportPackage()
+            let sheet = UIActivityViewController(activityItems: [package.url], applicationActivities: nil)
+            if let exportLogsButton {
+                sheet.popoverPresentationController?.sourceView = exportLogsButton
+                sheet.popoverPresentationController?.sourceRect = exportLogsButton.bounds
+            } else {
+                sheet.popoverPresentationController?.sourceView = view
+                sheet.popoverPresentationController?.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            }
+            sheet.completionWithItemsHandler = { _, completed, _, _ in
+                SKLocalLogger.cleanupExportPackage(at: package.url)
+                Task { @MainActor in
+                    SKRuntimeDiagnostics.record("diagnostics_export_finished;completed=\(completed)")
+                }
+            }
+            present(sheet, animated: true)
+            SKRuntimeDiagnostics.record("diagnostics_export_presented")
+        } catch {
+            let alert = UIAlertController(
+                title: String(localized: "Cannot Export Diagnostics", bundle: .sandboxark),
+                message: String(localized: "SandboxArk could not prepare the diagnostic package.", bundle: .sandboxark),
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: String(localized: "OK", bundle: .sandboxark), style: .default))
+            present(alert, animated: true)
+            SKRuntimeDiagnostics.record("diagnostics_export_failed")
+        }
     }
 
     /// Opens the container the flow or the browser will read, or reports why it cannot.
