@@ -56,7 +56,12 @@ dylib 文件名保持小写 `sandboxark.dylib`。
 - 遇到符号链接一律不跟随，保留目录与子目录组件逐个用描述符打开并复核类型，`..`、空组件和超长路径直接拒绝。
 - 扫描在后台线程执行，可以随时 Stop；扫描只读，不写、不删、不改宿主数据。
 
-备份（生成 `.sandboxark`）属于后续阶段，尚未实现。
+## 创建备份
+
+点 **Create Backup** 进入备份流程：
+
+- 先 **Scan Sandbox** 进行一次扫描，界面将会列出文件数、源数据量、最坏情况占用、需要的可用空间和当前可用空间。
+- **Export…** 会调系统 Share Sheet
 
 ## 测试
 
@@ -65,6 +70,4 @@ dylib 文件名保持小写 `sandboxark.dylib`。
 1. `sh scripts/build.sh` 产出 `dist/SandboxArk/sandboxark.dylib` 和 `SandboxArkTestHost.ipa`。
 2. 用 Feather 把 dylib 注入 TestHost，签名并安装到 iPhone / iPad（iOS 16+、arm64）。
 3. 启动后在 TestHost 上点 **Create Test Fixture**，再三指长按 1.5 秒进入 SandboxArk，点 **Browse Sandbox**，查看扫描状态、排除原因与文本预览。
-4. 点 **Copy Diagnostics** 把报告贴回来，作为真机证据。
-
-没有真机验证前，iOS 上的 `openat` / `O_NOFOLLOW` 行为一律标 unverified。
+4. 点 **Create Backup** → **Scan Sandbox** → **Create Partial Backup**（合成 fixture 含符号链接，扫描必然不完整），等流程走到 verified，再用 **Export…** 存出归档，用 `unzip -t` 和逐文件 SHA-256 核对。

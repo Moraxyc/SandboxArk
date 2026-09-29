@@ -28,6 +28,20 @@ struct SKBackupCoordinator {
         var allowsPartialBackup = false
         var isCancelled: @Sendable () -> Bool = { false }
         var onStateChange: @Sendable (State) -> Void = { _ in }
+        /// Stage counters for the progress UI, reported on the caller's thread.
+        var onProgress: @Sendable (Progress) -> Void = { _ in }
+    }
+
+    /// Monotonic counters for the progress UI. Each pass reports its own unit, so `state`
+    /// names the pass the numbers describe: staging counts copied files and source bytes,
+    /// archiving counts written members, verifying counts members still to check.
+    struct Progress: Sendable {
+        var state: State
+        var completedItems: Int
+        var totalItems: Int
+        /// Zero while the pass has no byte unit of its own.
+        var completedBytes: Int64
+        var totalBytes: Int64
     }
 
     struct Outcome: Sendable {
@@ -42,16 +56,21 @@ struct SKBackupCoordinator {
 
     // MARK: - Pipeline
 
-    static func run(home: SKAuthorizedRoot, request: Request) throws -> Outcome {
+    /// A caller that already scanned passes its report, so the estimate the user confirmed
+    /// is the estimate the transaction uses.
+    static func run(home: SKAuthorizedRoot,
+                    request: Request,
+                    report prepared: SKScanReport? = nil) throws -> Outcome {
         try validate(request)
         request.onStateChange(.prepared)
 
-        request.onStateChange(.scanning)
-        let report = SKScanner.scan(home: home,
-                                    options: SKScanner.Options(rootPaths: request.rootPaths,
-                                                               exclusionPolicy: request.exclusionPolicy,
-                                                               isCancelled: request.isCancelled))
-        if request.isCancelled() || report.status == .cancelled { throw cancelled() }
+        let report: SKScanReport
+        if let prepared {
+            report = prepared
+        } else {
+            request.onStateChange(.scanning)
+            report = try scan(home: home, request: request)
+        }
         guard report.isComplete || request.allowsPartialBackup else {
             throw SKError(code: .filesystemUnreadable,
                           stage: "scan",
@@ -61,6 +80,13 @@ struct SKBackupCoordinator {
         let estimate = try SKBackupPreflight.run(report: report, home: home)
 
         request.onStateChange(.staging)
+        var progress = Progress(state: .staging,
+                                completedItems: 0,
+                                totalItems: estimate.includedFiles,
+                                completedBytes: 0,
+                                totalBytes: estimate.sourceBytes)
+        request.onProgress(progress)
+
         let transaction = try Transaction(home: home, request: request)
         defer { transaction.close() }
         do {
@@ -79,7 +105,8 @@ struct SKBackupCoordinator {
                       plan: &plan,
                       remainingBytes: &remainingBytes,
                       unstableRoots: &unstableRoots,
-                      unstableFiles: &unstableFiles)
+                      unstableFiles: &unstableFiles,
+                      progress: &progress)
             plan = try plan.completingDirectories(home: home,
                                                   reference: referenceTimestamp(request.createdAt))
             let documents = try makeDocuments(report: report,
@@ -89,9 +116,24 @@ struct SKBackupCoordinator {
                                               request: request)
 
             transaction.set(.archiving)
-            try writeArchive(transaction: transaction, plan: plan, documents: documents)
+            progress = Progress(state: .archiving,
+                                completedItems: 0,
+                                totalItems: documents.memberCount,
+                                completedBytes: 0,
+                                totalBytes: 0)
+            request.onProgress(progress)
+            try writeArchive(transaction: transaction,
+                             plan: plan,
+                             documents: documents,
+                             request: request,
+                             progress: &progress)
 
             transaction.set(.verifying)
+            request.onProgress(Progress(state: .verifying,
+                                        completedItems: 0,
+                                        totalItems: documents.memberCount,
+                                        completedBytes: 0,
+                                        totalBytes: 0))
             let contents = try verifyArchive(transaction: transaction, expected: documents)
             guard contents.members.count == documents.memberCount else { throw SKZipLayoutError.inconsistent }
 
@@ -106,7 +148,22 @@ struct SKBackupCoordinator {
         }
     }
 
+    /// Scans the roots the request allows. The scan is a candidate list, never a trust
+    /// anchor: staging re-opens every source through the root descriptor and re-checks it.
+    static func scan(home: SKAuthorizedRoot, request: Request) throws -> SKScanReport {
+        let report = SKScanner.scan(home: home,
+                                    options: SKScanner.Options(rootPaths: request.rootPaths,
+                                                               exclusionPolicy: request.exclusionPolicy,
+                                                               isCancelled: request.isCancelled))
+        if request.isCancelled() || report.status == .cancelled { throw cancelled() }
+        return report
+    }
+
     // MARK: - Staging pass
+
+    /// Byte interval between in-file progress reports, so one multi-GiB member still moves
+    /// the UI without publishing a report per chunk.
+    private static let progressStride: Int64 = 4 * 1024 * 1024
 
     private static func stage(report: SKScanReport,
                               home: SKAuthorizedRoot,
@@ -115,7 +172,8 @@ struct SKBackupCoordinator {
                               plan: inout MemberPlan,
                               remainingBytes: inout Int64,
                               unstableRoots: inout Set<String>,
-                              unstableFiles: inout Int) throws {
+                              unstableFiles: inout Int,
+                              progress: inout Progress) throws {
         for root in report.roots {
             for entry in root.entries where entry.excludedReason == nil && entry.error == nil {
                 if request.isCancelled() { throw cancelled() }
@@ -127,13 +185,18 @@ struct SKBackupCoordinator {
                                                                  modifiedAt: entry.modifiedAt))
                 case .regular:
                     do {
-                        plan.files.append(try stage(file: entry,
-                                                    memberPath: memberPath,
-                                                    root: root.relativePath,
-                                                    home: home,
-                                                    request: request,
-                                                    transaction: transaction,
-                                                    remainingBytes: &remainingBytes))
+                        let file = try stage(file: entry,
+                                             memberPath: memberPath,
+                                             root: root.relativePath,
+                                             home: home,
+                                             request: request,
+                                             transaction: transaction,
+                                             remainingBytes: &remainingBytes,
+                                             progress: &progress)
+                        plan.files.append(file)
+                        progress.completedItems += 1
+                        progress.completedBytes += file.size
+                        request.onProgress(progress)
                     } catch let error as SKError where error.code == .filesystemChangedDuringRead
                         && request.allowsPartialBackup {
                         unstableRoots.insert(root.relativePath)
@@ -154,7 +217,8 @@ struct SKBackupCoordinator {
                               home: SKAuthorizedRoot,
                               request: Request,
                               transaction: Transaction,
-                              remainingBytes: inout Int64) throws -> MemberPlan.File {
+                              remainingBytes: inout Int64,
+                              progress: inout Progress) throws -> MemberPlan.File {
         let opened = try SKPathResolver.openRegularFile(atPath: entry.relativePath, under: home)
         defer { SKPathResolver.closeDescriptor(opened.descriptor) }
         guard opened.identity.kind == .regular, opened.identity.size == entry.size else {
@@ -168,6 +232,7 @@ struct SKBackupCoordinator {
 
         var hasher = SKSHA256.Hasher()
         var copied: Int64 = 0
+        var reported: Int64 = 0
         var buffer = [UInt8](repeating: 0, count: SKZipWriter.chunkBytes)
         while true {
             if request.isCancelled() { throw cancelled() }
@@ -178,6 +243,12 @@ struct SKBackupCoordinator {
             hasher.update(slice)
             copied += Int64(count)
             remainingBytes = max(0, remainingBytes - Int64(count))
+            if copied - reported >= progressStride {
+                reported = copied
+                var inFlight = progress
+                inFlight.completedBytes = progress.completedBytes + copied
+                request.onProgress(inFlight)
+            }
             let available = try SKBackupPreflight.availableBytes(home: home)
             // Staging holds one copy of the unread bytes and the archive holds at most
             // another, so the pending worst case is twice what is still unread.
@@ -211,7 +282,9 @@ struct SKBackupCoordinator {
 
     private static func writeArchive(transaction: Transaction,
                                      plan: MemberPlan,
-                                     documents: Documents) throws {
+                                     documents: Documents,
+                                     request: Request,
+                                     progress: inout Progress) throws {
         let partial = try SKArchiveIO.createExclusive(name: transaction.partialName, in: transaction.staging)
         defer { SKArchiveIO.close(partial) }
         var writer = try SKZipWriter(descriptor: partial)
@@ -220,14 +293,17 @@ struct SKBackupCoordinator {
                                   bytes: documents.manifestBytes,
                                   permissions: 0o644,
                                   modifiedAt: documents.reference)
+        countMember(&progress, request)
         _ = try writer.addPayload(path: SKManifest.hashIndexPath,
                                   bytes: documents.hashBytes,
                                   permissions: 0o644,
                                   modifiedAt: documents.reference)
+        countMember(&progress, request)
         for directory in plan.orderedDirectories {
             _ = try writer.addDirectory(path: directory.memberPath,
                                         permissions: directory.permissions,
                                         modifiedAt: directory.modifiedAt)
+            countMember(&progress, request)
         }
         for file in plan.orderedFiles {
             let staged = try SKArchiveIO.openReadOnly(name: file.stagedName, in: transaction.staging)
@@ -240,8 +316,16 @@ struct SKBackupCoordinator {
             guard member.sha256 == file.sha256, member.uncompressedBytes == file.size else {
                 throw SKZipReader.invalid(file.memberPath)
             }
+            countMember(&progress, request)
         }
         try writer.finish()
+    }
+
+    /// Counts one written member: the archive pass reports members, not bytes, because a
+    /// member's compressed size is not known until the deflater has run.
+    private static func countMember(_ progress: inout Progress, _ request: Request) {
+        progress.completedItems += 1
+        request.onProgress(progress)
     }
 
     private static func verifyArchive(transaction: Transaction, expected: Documents) throws -> SKZipReader.Contents {
@@ -376,7 +460,8 @@ struct SKBackupCoordinator {
         value = value &* 0x9E37_79B9_7F4A_7C15
         var text = "tx-"
         for shift in stride(from: 60, through: 0, by: -4) {
-            text.append(SKHex.digits[Int(value >> UInt64(shift)) & 0x0F])
+            // Mask before narrowing: the shift alone still leaves 63 bits at shift 0.
+            text.append(SKHex.digits[Int((value >> UInt64(shift)) & 0x0F)])
         }
         return text
     }

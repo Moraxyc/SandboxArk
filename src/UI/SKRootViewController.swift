@@ -1,8 +1,8 @@
 import UIKit
 
-/// Entry screen hosted by `SKUtilityWindow`: it identifies the host app, opens the
-/// read-only browser and closes the window. Host files are only read after the user
-/// opens the browser; presenting this screen alone scans nothing.
+/// Entry screen hosted by `SKUtilityWindow`: it identifies the host app, opens the read-only
+/// browser or the backup flow, and closes the window. Host files are only read after the user
+/// starts one of those; presenting this screen alone scans nothing.
 final class SKRootViewController: UIViewController {
     var onClose: (@MainActor () -> Void)?
 
@@ -22,6 +22,10 @@ final class SKRootViewController: UIViewController {
         identity.textAlignment = .center
         identity.numberOfLines = 0
 
+        let backup = UIButton(type: .system)
+        backup.setTitle("Create Backup", for: .normal)
+        backup.addTarget(self, action: #selector(backupTapped), for: .touchUpInside)
+
         let browse = UIButton(type: .system)
         browse.setTitle("Browse Sandbox", for: .normal)
         browse.addTarget(self, action: #selector(browseTapped), for: .touchUpInside)
@@ -30,7 +34,17 @@ final class SKRootViewController: UIViewController {
         close.setTitle("Close", for: .normal)
         close.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
-        let stack = UIStackView(arrangedSubviews: [title, identity, browse, close])
+        let notice = UILabel()
+        notice.text = "SandboxArk may access all files that this app itself can access. "
+            + "Backups can contain private app data and are exported only when you ask."
+        notice.font = .preferredFont(forTextStyle: .footnote)
+        notice.adjustsFontForContentSizeCategory = true
+        notice.textColor = .secondaryLabel
+        notice.textAlignment = .center
+        notice.numberOfLines = 0
+        notice.preferredMaxLayoutWidth = 320
+
+        let stack = UIStackView(arrangedSubviews: [title, identity, backup, browse, close, notice])
         stack.axis = .vertical
         stack.alignment = .center
         stack.spacing = 24
@@ -52,16 +66,7 @@ final class SKRootViewController: UIViewController {
     }
 
     @objc private func browseTapped() {
-        let home: SKAuthorizedRoot
-        do {
-            home = try SKAuthorizedRoot.openHome(NSHomeDirectory())
-        } catch let error as SKError {
-            presentFailure(error.code.rawValue)
-            return
-        } catch {
-            presentFailure(SKErrorCode.filesystemUnreadable.rawValue)
-            return
-        }
+        guard let home = openHome(for: "Browse") else { return }
         let browser = SKSandboxBrowserViewController(home: home) { home.close() }
         let navigation = UINavigationController(rootViewController: browser)
         navigation.modalPresentationStyle = .formSheet
@@ -69,13 +74,33 @@ final class SKRootViewController: UIViewController {
         SKRuntimeDiagnostics.record("browse_opened")
     }
 
-    private func presentFailure(_ code: String) {
-        let alert = UIAlertController(title: "Browse unavailable",
+    @objc private func backupTapped() {
+        guard let home = openHome(for: "Backup") else { return }
+        let flow = SKBackupFlowViewController(home: home) { home.close() }
+        let navigation = UINavigationController(rootViewController: flow)
+        navigation.modalPresentationStyle = .formSheet
+        present(navigation, animated: true)
+    }
+
+    /// Opens the container the flow or the browser will read, or reports why it cannot.
+    private func openHome(for action: String) -> SKAuthorizedRoot? {
+        do {
+            return try SKAuthorizedRoot.openHome(NSHomeDirectory())
+        } catch let error as SKError {
+            presentFailure(error.code.rawValue, for: action)
+        } catch {
+            presentFailure(SKErrorCode.filesystemUnreadable.rawValue, for: action)
+        }
+        return nil
+    }
+
+    private func presentFailure(_ code: String, for action: String) {
+        let alert = UIAlertController(title: "\(action) unavailable",
                                       message: "This container could not be opened (\(code)).",
                                       preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-        SKRuntimeDiagnostics.record("browse_open_failed;code=\(code)")
+        SKRuntimeDiagnostics.record("\(action.lowercased())_open_failed;code=\(code)")
     }
 
     @objc private func closeTapped() {

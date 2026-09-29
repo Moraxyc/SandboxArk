@@ -147,7 +147,10 @@ enum SKPathResolver {
         var buffer = [CChar](repeating: 0, count: canonicalPathBufferBytes)
         let resolved = path.withCString { realpath($0, &buffer) }
         guard resolved != nil else { return nil }
-        return String(validatingUTF8: buffer)
+        return buffer.withUnsafeBufferPointer { buffer in
+            guard let base = buffer.baseAddress else { return nil }
+            return String(validatingCString: base)
+        }
     }
 
     // MARK: - Errors and cleanup
@@ -260,7 +263,7 @@ enum SKPathResolver {
     private static func name(of entry: UnsafeMutablePointer<dirent>) -> String? {
         withUnsafeBytes(of: entry.pointee.d_name) { raw in
             guard let base = raw.baseAddress else { return nil }
-            return String(validatingUTF8: base.assumingMemoryBound(to: CChar.self))
+            return String(validatingCString: base.assumingMemoryBound(to: CChar.self))
         }
     }
 }
