@@ -58,7 +58,7 @@ final class SKBackupFlowViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Create Backup"
+        title = String(localized: "Create Backup", bundle: .sandboxark)
         view.backgroundColor = .systemBackground
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close,
                                                             target: self,
@@ -151,65 +151,78 @@ final class SKBackupFlowViewController: UIViewController {
     }
 
     private func renderScope() {
-        statusLabel.text = "Create Backup"
-        detailLabel.text = "Scope: standard — \(SKScanner.standardRootPaths.joined(separator: ", "))."
-        messageLabel.text = """
-        SandboxArk may access all files that this app itself can access. A backup of this \
-        sandbox can contain private app data. It is written into this app's own container as \
-        a SandboxArk/\(SKManifest.formatVersion) .sandboxark archive and only leaves it when \
-        you export it, which is the only time SandboxArk asks another app to read it. \
-        SandboxArk never uploads anything, never reads Keychain items, and never reaches \
-        another app's container.
-        """
+        statusLabel.text = String(localized: "Create Backup", bundle: .sandboxark)
+        detailLabel.text = String(
+            localized: "Included folders: \(SKScanner.standardRootPaths.joined(separator: ", ")).",
+            bundle: .sandboxark)
+        messageLabel.text = String(localized: """
+        SandboxArk can read every file this app can access, so a backup can contain private \
+        app data. The archive is built and kept in this app's temporary storage until you \
+        export it, and SandboxArk never uploads anything.
+        """, bundle: .sandboxark)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: "Scan Sandbox", secondary: "Cancel")
+        setButtons(primary: String(localized: "Scan Sandbox", bundle: .sandboxark),
+                   secondary: String(localized: "Cancel", bundle: .sandboxark))
     }
 
     private func renderScanning() {
         statusLabel.text = SKBackupFlowViewController.status(for: .scanning)
-        detailLabel.text = "Counting the files the standard scope covers. Nothing is copied yet."
-        messageLabel.text = "The scan only reads; stopping it leaves the sandbox unchanged."
+        detailLabel.text = String(
+            localized: "Counting the files to back up. Nothing is copied yet.",
+            bundle: .sandboxark)
+        messageLabel.text = String(
+            localized: "The scan only reads; stopping it leaves the sandbox unchanged.",
+            bundle: .sandboxark)
         spinner.startAnimating()
         progressView.isHidden = true
-        setButtons(primary: nil, secondary: "Cancel")
+        setButtons(primary: nil, secondary: String(localized: "Cancel", bundle: .sandboxark))
     }
 
     private func renderPreflight(_ preflight: Preflight) {
         let estimate = preflight.estimate
-        statusLabel.text = "Ready to back up"
+        statusLabel.text = String(localized: "Ready to back up", bundle: .sandboxark)
         var lines = [
-            "Files: \(estimate.includedFiles)",
-            "Source data: \(SKBackupFlowViewController.format(estimate.sourceBytes))",
-            "Worst case during the backup: \(SKBackupFlowViewController.format(estimate.totalBytes))"
-                + " (uncompressed staging copy plus archive and index)",
-            "Free space needed: \(SKBackupFlowViewController.format(estimate.requiredBytes)),"
-                + " including a \(SKBackupFlowViewController.format(estimate.reserveBytes)) reserve",
-            "Free space now: \(SKBackupFlowViewController.format(preflight.availableBytes))",
+            String(localized: "Files: \(estimate.includedFiles.formatted())", bundle: .sandboxark),
+            String(localized: "Source data: \(SKBackupFlowViewController.format(estimate.sourceBytes))",
+                   bundle: .sandboxark),
+            String(localized: """
+            Space needed: \(SKBackupFlowViewController.format(estimate.requiredBytes)), \
+            including a \(SKBackupFlowViewController.format(estimate.reserveBytes)) reserve
+            """, bundle: .sandboxark),
+            String(localized: "Space available: \(SKBackupFlowViewController.format(preflight.availableBytes))",
+                   bundle: .sandboxark),
         ]
         if estimate.directoryMembers > 0 {
-            lines.insert("Directories: \(estimate.directoryMembers)", at: 1)
+            lines.insert(String(localized: "Folders: \(estimate.directoryMembers.formatted())",
+                                bundle: .sandboxark), at: 1)
         }
         detailLabel.text = lines.joined(separator: "\n")
 
-        if let blocked = preflight.blocked {
-            messageLabel.text = "This backup cannot start. \(blocked.reason ?? "")"
-                + " \(blocked.userAction ?? "")"
+        if preflight.blocked != nil {
+            messageLabel.text = String(localized: """
+            This backup cannot start, because this device does not have room for the archive. \
+            Free up space, then scan again.
+            """, bundle: .sandboxark)
         } else if preflight.report.isComplete {
-            messageLabel.text = "The estimate is a worst case: it reserves one uncompressed "
-                + "staging copy and a ZIP64 archive. The scan is a candidate list, so every file "
-                + "is re-opened and re-checked while it is copied."
+            messageLabel.text = String(localized: """
+            These numbers assume the worst case, including one uncompressed copy of the \
+            files while the archive is built. Every file is checked again as it is copied.
+            """, bundle: .sandboxark)
         } else {
             messageLabel.text = incompleteReason(preflight.report)
-                + " The archive will be marked partial (manifest.backup.completeness = partial) "
-                + "and every root that could not be read completely is listed in the manifest."
+                + " " + String(localized: """
+                The archive will be marked partial, and every folder that could not be read \
+                completely is listed inside it.
+                """, bundle: .sandboxark)
         }
         spinner.stopAnimating()
         progressView.isHidden = true
         let partial = !preflight.report.isComplete
-        setButtons(primary: partial ? "Create Partial Backup" : "Start Backup",
+        setButtons(primary: String(localized: partial ? "Back Up Anyway" : "Start Backup",
+                                   bundle: .sandboxark),
                    primaryEnabled: preflight.blocked == nil,
-                   secondary: "Cancel")
+                   secondary: String(localized: "Cancel", bundle: .sandboxark))
     }
 
     private func renderRunning() {
@@ -224,58 +237,100 @@ final class SKBackupFlowViewController: UIViewController {
             progressView.isHidden = true
             spinner.startAnimating()
             detailLabel.text = state == .verifying
-                ? "Re-reading every member and comparing its CRC and SHA-256."
-                : "Preparing the transaction."
+                ? String(localized: "Reading the archive back and checking every file against its checksum.",
+                         bundle: .sandboxark)
+                : String(localized: "Starting the backup.", bundle: .sandboxark)
         }
-        messageLabel.text = "Cancel stops the backup at the next chunk boundary and removes "
-            + "this transaction's temporary files. Only a fully verified archive becomes shareable."
-        setButtons(primary: nil, secondary: "Cancel Backup")
+        messageLabel.text = String(localized: """
+        Cancel stops the backup and removes this transaction's temporary files. Only a fully \
+        verified archive can be exported.
+        """, bundle: .sandboxark)
+        setButtons(primary: nil, secondary: String(localized: "Cancel", bundle: .sandboxark))
         announce(state)
     }
 
     private func renderVerified(_ outcome: SKBackupCoordinator.Outcome) {
         let manifest = outcome.manifest
         statusLabel.text = manifest.backup.completeness == .complete
-            ? "Backup verified"
-            : "Partial backup verified"
+            ? String(localized: "Backup Verified", bundle: .sandboxark)
+            : String(localized: "Partial Backup Verified", bundle: .sandboxark)
         var lines = [
-            "Files: \(manifest.backup.totalFiles) · \(SKBackupFlowViewController.format(manifest.backup.totalBytes))",
-            "Archive members: \(outcome.verifiedMembers) · CRC and SHA-256 matched for every one",
-            "Format: \(SKManifest.format)/\(SKManifest.formatVersion)",
-            "Completeness: \(manifest.backup.completeness.rawValue)",
-            "Preferences: \(manifest.backup.preferencesConsistency)"
-                + " · SQLite groups recorded: \(manifest.sqliteGroups.count)",
+            String(localized: """
+            Files: \(manifest.backup.totalFiles.formatted()) · \
+            \(SKBackupFlowViewController.format(manifest.backup.totalBytes))
+            """, bundle: .sandboxark),
         ]
-        if manifest.backup.warningCount > 0 {
-            lines.append("Warnings: \(manifest.backup.warningCount)")
-        }
         let incomplete = manifest.roots.filter { !$0.complete }
         if !incomplete.isEmpty {
-            let described = incomplete.map { "\($0.relativeRoot) (\($0.unreadableCount) unreadable)" }
-            lines.append("Incomplete roots: \(described.joined(separator: ", "))")
+            let described = incomplete.map {
+                String(localized: "\($0.relativeRoot) (\($0.unreadableCount.formatted()) unreadable)",
+                       bundle: .sandboxark)
+            }
+            lines.append(String(localized: "Incomplete Folders: \(described.joined(separator: ", "))",
+                                bundle: .sandboxark))
         }
         detailLabel.text = lines.joined(separator: "\n")
 
-        messageLabel.text = "Export hands the archive to the share sheet: Files or another "
-            + "provider decides where it lands, and SandboxArk cannot tell whether that export "
-            + "finished. A copy left inside this app's container is deleted with the app."
+        messageLabel.text = String(localized: """
+        Export hands the archive to the share sheet, and SandboxArk cannot tell whether the \
+        export finished. SandboxArk keeps its own copy in temporary storage, which the system \
+        may reclaim at any time; your next backup replaces it.
+        """, bundle: .sandboxark)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: "Export…", secondary: "Done")
+        setButtons(primary: String(localized: "Export…", bundle: .sandboxark),
+                   secondary: String(localized: "Done", bundle: .sandboxark))
     }
 
     private func renderFailure(_ error: SKError) {
         let cancelled = error.code == .cancelled
-        statusLabel.text = cancelled ? "Backup cancelled" : "Backup failed"
-        var lines = ["Code: \(error.code.rawValue)"]
-        if let stage = error.stage { lines.append("Stage: \(stage)") }
-        if let reason = error.reason { lines.append(reason) }
-        if let action = error.userAction { lines.append("Next: \(action)") }
-        detailLabel.text = lines.joined(separator: "\n")
+        statusLabel.text = cancelled
+            ? String(localized: "Backup Cancelled", bundle: .sandboxark)
+            : String(localized: "Backup Failed", bundle: .sandboxark)
+        detailLabel.text = SKBackupFlowViewController.failureExplanation(for: error)
         messageLabel.text = stagingState(for: error)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: cancelled ? nil : "Try Again", secondary: "Close")
+        setButtons(primary: cancelled ? nil : String(localized: "Try Again", bundle: .sandboxark),
+                   secondary: String(localized: "Close", bundle: .sandboxark))
+    }
+
+    /// One sentence the user can act on. The code, stage and reason stay in the diagnostics
+    /// record, so a report can still be traced without reading as technical text on screen.
+    private static func failureExplanation(for error: SKError) -> String {
+        switch error.code {
+        case .cancelled:
+            String(localized: "The backup was cancelled before it finished.", bundle: .sandboxark)
+        case .storageInsufficientSpace:
+            String(localized: "This device ran out of room for the archive, so the backup stopped.",
+                   bundle: .sandboxark)
+        case .storageDurabilityFailure:
+            String(localized: "SandboxArk could not save the archive to this device's storage.",
+                   bundle: .sandboxark)
+        case .filesystemUnreadable, .filesystemChangedDuringRead,
+             .filesystemSymlinkEscape, .filesystemReservedPathConflict:
+            String(localized: "SandboxArk could not read part of the sandbox, so the backup stopped.",
+                   bundle: .sandboxark)
+        case .permissionScopeExpired, .permissionEntitlementMismatch:
+            String(localized: "SandboxArk's access to the sandbox ended, so the backup stopped.",
+                   bundle: .sandboxark)
+        case .archiveCorrupt, .archivePathTraversal, .archiveLimitExceeded:
+            String(localized: "The archive could not be written, so the backup stopped.",
+                   bundle: .sandboxark)
+        case .integrityHashMismatch, .integrityManifestInvalid:
+            String(localized: "The archive did not match its checksums, so it was not kept.",
+                   bundle: .sandboxark)
+        case .sqliteOpenFailed, .sqliteBusy, .sqliteIntegrityCheckFailed, .sqliteVerificationTimedOut:
+            String(localized: "A database inside the sandbox could not be checked.",
+                   bundle: .sandboxark)
+        case .manifestUnsupportedVersion, .manifestMigrationFailed:
+            String(localized: "The archive's index could not be read back.", bundle: .sandboxark)
+        case .compatibilityBundleIdentifierMismatch, .compatibilityVersionRisk:
+            String(localized: "The archive was not made for this app.", bundle: .sandboxark)
+        case .restoreQuiescenceUnavailable, .restoreSnapshotFailed, .restorePlanStale,
+             .restoreConflict, .restoreRollbackRequired, .restoreJournalCorrupt:
+            String(localized: "The archive could not be prepared for restoring.", bundle: .sandboxark)
+        }
     }
 
     /// VoiceOver hears each stage once; the counters would otherwise repeat on every chunk.
@@ -333,7 +388,7 @@ final class SKBackupFlowViewController: UIViewController {
 
     private func startRun(_ preflight: Preflight) {
         guard var request, !isWorking else { return }
-        // The start action is labelled "Create Partial Backup" for an incomplete scan, so the
+        // The start action is labelled "Back Up Anyway" for an incomplete scan, so the
         // flag is the user's explicit acceptance, not a default.
         request.allowsPartialBackup = !preflight.report.isComplete
         phase = .running
@@ -452,10 +507,14 @@ final class SKBackupFlowViewController: UIViewController {
     private func exportFinished(completed: Bool) {
         SKRuntimeDiagnostics.record(completed ? "backup_export_completed" : "backup_export_dismissed")
         messageLabel.text = completed
-            ? "Exported. The staged copy stays in this app's container until it is cleaned up, "
-                + "and it is deleted with the app."
-            : "Export dismissed. The verified archive stays in this container and can be "
-                + "exported again."
+            ? String(localized: """
+              Exported. Keep the exported copy: SandboxArk's own copy is temporary and your \
+              next backup replaces it.
+              """, bundle: .sandboxark)
+            : String(localized: """
+              The archive was not exported. It still sits in SandboxArk's temporary storage \
+              and can be exported again.
+              """, bundle: .sandboxark)
     }
 
     // MARK: - Actions
@@ -497,7 +556,6 @@ final class SKBackupFlowViewController: UIViewController {
             app: SKHostManifest.app(),
             environment: SKHostManifest.environment(),
             outputName: SKBackupFlowViewController.outputName(
-                createdAt: createdAt,
                 identifier: Bundle.main.bundleIdentifier ?? "app"),
             createdAt: createdAt)
         request.isCancelled = { [cancellation] in cancellation.isCancelled }
@@ -510,27 +568,30 @@ final class SKBackupFlowViewController: UIViewController {
 
     private static func status(for state: SKBackupCoordinator.State) -> String {
         switch state {
-        case .prepared, .scanning: "Scanning the sandbox…"
-        case .staging: "Copying files into staging…"
-        case .archiving: "Writing the archive…"
-        case .verifying: "Verifying the archive…"
-        case .readyToShare: "Backup verified"
-        case .cancelled: "Backup cancelled"
-        case .failed: "Backup failed"
-        case .cleanupRequired: "Cleanup required"
+        case .prepared, .scanning: String(localized: "Scanning the sandbox…", bundle: .sandboxark)
+        case .staging: String(localized: "Copying files…", bundle: .sandboxark)
+        case .archiving: String(localized: "Writing the archive…", bundle: .sandboxark)
+        case .verifying: String(localized: "Verifying the archive…", bundle: .sandboxark)
+        case .readyToShare: String(localized: "Backup Verified", bundle: .sandboxark)
+        case .cancelled: String(localized: "Backup Cancelled", bundle: .sandboxark)
+        case .failed: String(localized: "Backup Failed", bundle: .sandboxark)
+        case .cleanupRequired: String(localized: "Cleanup Required", bundle: .sandboxark)
         }
     }
 
     private static func counters(_ counters: SKBackupCoordinator.Progress) -> String {
+        let completed = counters.completedItems.formatted()
+        let total = counters.totalItems.formatted()
         var text: String
         switch counters.state {
         case .archiving:
-            text = "\(counters.completedItems) of \(counters.totalItems) archive members"
+            text = String(localized: "Wrote \(completed) of \(total) files", bundle: .sandboxark)
         default:
-            text = "\(counters.completedItems) of \(counters.totalItems) files"
+            text = String(localized: "Backed up \(completed) of \(total) files", bundle: .sandboxark)
         }
         if counters.totalBytes > 0 {
-            text += " · \(format(counters.completedBytes)) of \(format(counters.totalBytes))"
+            text += String(localized: " · \(format(counters.completedBytes)) of \(format(counters.totalBytes))",
+                           bundle: .sandboxark)
         }
         return text
     }
@@ -541,33 +602,43 @@ final class SKBackupFlowViewController: UIViewController {
         var parts: [String] = []
         switch report.status {
         case .complete: break
-        case .cancelled: parts.append("The scan stopped before it finished.")
-        case .entryLimitExceeded: parts.append("The scan stopped at the entry limit.")
-        case .depthExceeded: parts.append("The scan stopped at the depth limit.")
+        case .cancelled:
+            parts.append(String(localized: "The scan stopped before it finished.", bundle: .sandboxark))
+        case .entryLimitExceeded:
+            parts.append(String(localized: "The scan stopped at the entry limit.", bundle: .sandboxark))
+        case .depthExceeded:
+            parts.append(String(localized: "The scan stopped at the depth limit.", bundle: .sandboxark))
         }
         if report.unreadableCount > 0 {
-            parts.append("\(report.unreadableCount) items could not be read.")
+            parts.append(String(localized: "\(report.unreadableCount.formatted()) items could not be read.",
+                                bundle: .sandboxark))
         }
         let excluded = report.excludedCounts
             .filter { $0.value > 0 }
             .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { "\($0.value)×\($0.key.rawValue)" }
+            .map { "\(SKExclusionLabel.text($0.key)) (\($0.value.formatted()))" }
         if !excluded.isEmpty {
-            parts.append("Excluded by policy: \(excluded.joined(separator: ", ")).")
+            parts.append(String(localized: "Excluded by policy: \(excluded.joined(separator: ", ")).",
+                                bundle: .sandboxark))
         }
-        return parts.isEmpty ? "Some roots are not complete." : parts.joined(separator: " ")
+        return parts.isEmpty
+            ? String(localized: "Some folders could not be scanned completely.", bundle: .sandboxark)
+            : parts.joined(separator: " ")
     }
 
     /// What the failure did to the data, in the engine's recovery vocabulary.
     private func stagingState(for error: SKError) -> String {
         switch error.recoveryState ?? "" {
         case SKBackupCoordinator.State.cleanupRequired.rawValue:
-            "No archive was created, and this transaction's temporary files could not be removed."
-                + " They are marked for cleanup."
+            String(localized: """
+            No archive was created, and this transaction's temporary files could not be removed. \
+            They are marked for cleanup.
+            """, bundle: .sandboxark)
         case SKBackupCoordinator.State.readyToShare.rawValue:
-            "The verified archive was kept."
+            String(localized: "The verified archive was kept.", bundle: .sandboxark)
         default:
-            "No archive was created; this transaction's staging files were removed."
+            String(localized: "No archive was created, and this transaction's temporary files were removed.",
+                   bundle: .sandboxark)
         }
     }
 
@@ -581,15 +652,15 @@ final class SKBackupFlowViewController: UIViewController {
     private static let archiveNameCharacters = Set(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
 
-    /// The archive name is not part of the format: the transaction directory already
-    /// separates runs, so the name only has to be a plain file name a Files app can show.
-    private static func outputName(createdAt: String, identifier: String) -> String {
-        let stamp = createdAt.filter { $0.isNumber || $0 == "T" || $0 == "Z" }
+    /// The archive name is not part of the format, and the slot holds one file, so the name
+    /// is fixed per host app: a name that changed per run would add an archive instead of
+    /// replacing the previous one. The creation time lives in the manifest.
+    private static func outputName(identifier: String) -> String {
         var slug = ""
         for character in identifier {
             slug.append(archiveNameCharacters.contains(character) ? character : "-")
         }
-        return "SandboxArk-\(slug.prefix(80))-\(stamp).sandboxark"
+        return "SandboxArk-\(slug.prefix(80)).sandboxark"
     }
 }
 

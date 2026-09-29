@@ -21,6 +21,7 @@ sh scripts/build.sh
 产物在 `dist/SandboxArk/`：
 
 - `sandboxark.dylib`：注入用的动态库
+- 界面文案（`en` / `zh-Hans`）已嵌入 dylib，首次显示界面时会在目标 App 的 Caches 中恢复标准 localization bundle
 - `SandboxArkTestHost.ipa`：项目自带的测试宿主
 
 宿主 app 包内会写入 `build-metadata.txt`，记录这次构建用的 Xcode、iOS SDK、Swift 和 Clang 版本。

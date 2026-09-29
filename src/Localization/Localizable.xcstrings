@@ -1,0 +1,790 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    " · %@ of %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : " · %@/%@" }
+        }
+      }
+    },
+    "%@ (%@ unreadable)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "%@（%@ 项无法读取）" }
+        }
+      }
+    },
+    "%@ files · %@ · %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "%@ 个文件 · %@ · %@" }
+        }
+      }
+    },
+    "%@ items could not be read." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "有 %@ 项无法读取。" }
+        }
+      }
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "%@ · %@" }
+        }
+      }
+    },
+    "A database inside the sandbox could not be checked." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法检查沙盒中的某个数据库。" }
+        }
+      }
+    },
+    "Back Up Anyway" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "仍然备份" }
+        }
+      }
+    },
+    "Backed up %@ of %@ files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已备份 %@/%@ 个文件" }
+        }
+      }
+    },
+    "Backup Cancelled" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "备份已取消" }
+        }
+      }
+    },
+    "Backup Failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "备份失败" }
+        }
+      }
+    },
+    "Backup Verified" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "备份已校验" }
+        }
+      }
+    },
+    "Browse Sandbox" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "浏览沙盒" }
+        }
+      }
+    },
+    "Cache" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "缓存" }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消" }
+        }
+      }
+    },
+    "Cancel stops the backup and removes this transaction's temporary files. Only a fully verified archive can be exported." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消会停止备份并删除本次事务的临时文件。只有完整校验通过的归档才能导出。" }
+        }
+      }
+    },
+    "Cancelled" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已取消" }
+        }
+      }
+    },
+    "Cannot Back Up This Sandbox" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法备份此沙盒" }
+        }
+      }
+    },
+    "Cannot Browse This Sandbox" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法浏览此沙盒" }
+        }
+      }
+    },
+    "Category Not Enabled" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "类别未启用" }
+        }
+      }
+    },
+    "Cleanup Required" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "需要清理" }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "关闭" }
+        }
+      }
+    },
+    "Complete" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "完整" }
+        }
+      }
+    },
+    "Copying files…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在复制文件…" }
+        }
+      }
+    },
+    "Could Not Be Read" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法读取" }
+        }
+      }
+    },
+    "Counting the files to back up. Nothing is copied yet." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在统计要备份的文件，此时还没有复制任何内容。" }
+        }
+      }
+    },
+    "Create Backup" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "创建备份" }
+        }
+      }
+    },
+    "Credential Store" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "凭据存储" }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "完成" }
+        }
+      }
+    },
+    "Excluded" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已排除" }
+        }
+      }
+    },
+    "Excluded by policy: %@." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "按策略排除：%@。" }
+        }
+      }
+    },
+    "Excluded: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已排除：%@" }
+        }
+      }
+    },
+    "Export hands the archive to the share sheet, and SandboxArk cannot tell whether the export finished. SandboxArk keeps its own copy in temporary storage, which the system may reclaim at any time; your next backup replaces it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "导出会把归档交给分享面板，SandboxArk 无法得知导出是否完成。SandboxArk 自己的副本放在临时存储里，系统随时可能回收它；下一次备份会替换这份副本。" }
+        }
+      }
+    },
+    "Exported. Keep the exported copy: SandboxArk's own copy is temporary and your next backup replaces it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已导出。请保留导出的副本：SandboxArk 自己的副本是临时的，下一次备份会替换它。" }
+        }
+      }
+    },
+    "Export…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "导出…" }
+        }
+      }
+    },
+    "Files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件" }
+        }
+      }
+    },
+    "Files: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件：%@" }
+        }
+      }
+    },
+    "Files: %@ · %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件：%@ · %@" }
+        }
+      }
+    },
+    "Folder" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件夹" }
+        }
+      }
+    },
+    "Folders: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件夹：%@" }
+        }
+      }
+    },
+    "Home" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "主目录" }
+        }
+      }
+    },
+    "Included folders: %@." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "包含的文件夹：%@。" }
+        }
+      }
+    },
+    "Incomplete Folders: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "未完整读取的文件夹：%@" }
+        }
+      }
+    },
+    "Keychain" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "钥匙串" }
+        }
+      }
+    },
+    "Logs" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "日志" }
+        }
+      }
+    },
+    "No archive was created, and this transaction's temporary files could not be removed. They are marked for cleanup." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "没有创建归档，且本次事务的临时文件无法删除，它们已被标记为待清理。" }
+        }
+      }
+    },
+    "No archive was created, and this transaction's temporary files were removed." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "没有创建归档，本次事务的临时文件已删除。" }
+        }
+      }
+    },
+    "Nothing was excluded." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "没有排除任何内容。" }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "好" }
+        }
+      }
+    },
+    "Partial" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "部分" }
+        }
+      }
+    },
+    "Partial Backup Verified" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "部分备份已校验" }
+        }
+      }
+    },
+    "Preview truncated at %@." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "预览已在 %@ 处截断。" }
+        }
+      }
+    },
+    "Reading the archive back and checking every file against its checksum." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在回读归档，用校验和核对每个文件。" }
+        }
+      }
+    },
+    "Ready to back up" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "可以开始备份" }
+        }
+      }
+    },
+    "Rescan" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "重新扫描" }
+        }
+      }
+    },
+    "SandboxArk can preview text, JSON, and plist files only." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 只能预览文本、JSON 和 plist 文件。" }
+        }
+      }
+    },
+    "SandboxArk can read every file this app can access, so a backup can contain private app data. The archive is built and kept in this app's temporary storage until you export it, and SandboxArk never uploads anything." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 可以读取此 App 能访问的所有文件，因此备份可能包含 App 的私有数据。归档在导出前只存在于本 App 的临时存储中，SandboxArk 从不上传任何内容。" }
+        }
+      }
+    },
+    "SandboxArk could not open this app's home directory, so no archive was created." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 无法打开此 App 的主目录，因此没有创建归档。" }
+        }
+      }
+    },
+    "SandboxArk could not open this app's home directory, so nothing was read." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 无法打开此 App 的主目录，因此没有读取任何内容。" }
+        }
+      }
+    },
+    "SandboxArk could not read part of the sandbox, so the backup stopped." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 无法读取沙盒的一部分，备份已停止。" }
+        }
+      }
+    },
+    "SandboxArk could not save the archive to this device's storage." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 无法把归档写入此设备的存储。" }
+        }
+      }
+    },
+    "SandboxArk may access all files that this app itself can access. Backups can contain private app data and are exported only when you ask." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 可以访问此 App 自身能访问的所有文件。备份可能包含 App 的私有数据，只会在你主动导出时导出。" }
+        }
+      }
+    },
+    "SandboxArk's Own Files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 自身的文件" }
+        }
+      }
+    },
+    "SandboxArk's access to the sandbox ended, so the backup stopped." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "SandboxArk 对沙盒的访问已结束，备份已停止。" }
+        }
+      }
+    },
+    "Scan" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描" }
+        }
+      }
+    },
+    "Scan Sandbox" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描沙盒" }
+        }
+      }
+    },
+    "Scanned Folders" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已扫描的文件夹" }
+        }
+      }
+    },
+    "Scanning the sandbox…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在扫描沙盒…" }
+        }
+      }
+    },
+    "Size" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "大小" }
+        }
+      }
+    },
+    "Some folders could not be scanned completely." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "部分文件夹未能完整扫描。" }
+        }
+      }
+    },
+    "Source data: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "源数据：%@" }
+        }
+      }
+    },
+    "Space available: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "可用空间：%@" }
+        }
+      }
+    },
+    "Space needed: %@, including a %@ reserve" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "需要的空间：%@，其中包含 %@ 的保留空间" }
+        }
+      }
+    },
+    "Start Backup" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "开始备份" }
+        }
+      }
+    },
+    "Starting the backup." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在开始备份。" }
+        }
+      }
+    },
+    "Status" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "状态" }
+        }
+      }
+    },
+    "Stop" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "停止" }
+        }
+      }
+    },
+    "Stopped at the Depth Limit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "达到深度上限而停止" }
+        }
+      }
+    },
+    "Stopped at the Entry Limit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "达到条目上限而停止" }
+        }
+      }
+    },
+    "Symbolic Link" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "符号链接" }
+        }
+      }
+    },
+    "Temporary Files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "临时文件" }
+        }
+      }
+    },
+    "The archive could not be prepared for restoring." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法准备要恢复的归档。" }
+        }
+      }
+    },
+    "The archive could not be written, so the backup stopped." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法写入归档，备份已停止。" }
+        }
+      }
+    },
+    "The archive did not match its checksums, so it was not kept." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "归档与校验和不符，因此没有保留。" }
+        }
+      }
+    },
+    "The archive was not exported. It still sits in SandboxArk's temporary storage and can be exported again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "归档没有导出，它仍在 SandboxArk 的临时存储中，可以再次导出。" }
+        }
+      }
+    },
+    "The archive was not made for this app." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "这个归档不是为此 App 创建的。" }
+        }
+      }
+    },
+    "The archive will be marked partial, and every folder that could not be read completely is listed inside it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "归档会被标记为部分备份，每个未能完整读取的文件夹都会列在里面。" }
+        }
+      }
+    },
+    "The archive's index could not be read back." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法回读归档的索引。" }
+        }
+      }
+    },
+    "The backup was cancelled before it finished." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "备份在完成前被取消。" }
+        }
+      }
+    },
+    "The file could not be read." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法读取该文件。" }
+        }
+      }
+    },
+    "The listing stopped at the depth limit." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "列表达到深度上限而停止。" }
+        }
+      }
+    },
+    "The listing stopped at the entry limit." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "列表达到条目上限而停止。" }
+        }
+      }
+    },
+    "The listing stopped before it finished." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "列表在完成前停止了。" }
+        }
+      }
+    },
+    "The scan only reads; stopping it leaves the sandbox unchanged." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描只读取，停止扫描不会改动沙盒。" }
+        }
+      }
+    },
+    "The scan stopped at the depth limit." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描达到深度上限而停止。" }
+        }
+      }
+    },
+    "The scan stopped at the entry limit." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描达到条目上限而停止。" }
+        }
+      }
+    },
+    "The scan stopped before it finished." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描在完成前停止了。" }
+        }
+      }
+    },
+    "The verified archive was kept." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已校验的归档已保留。" }
+        }
+      }
+    },
+    "These numbers assume the worst case, including one uncompressed copy of the files while the archive is built. Every file is checked again as it is copied." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "这些数字按最坏情况估算，包含构建归档期间的一份未压缩副本。每个文件在复制时都会重新校验。" }
+        }
+      }
+    },
+    "This backup cannot start, because this device does not have room for the archive. Free up space, then scan again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法开始备份，因为此设备没有足够空间存放归档。请先释放空间，再重新扫描。" }
+        }
+      }
+    },
+    "This device ran out of room for the archive, so the backup stopped." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "此设备空间不足，无法存放归档，备份已停止。" }
+        }
+      }
+    },
+    "This file is not UTF-8 text, so SandboxArk cannot preview it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "该文件不是 UTF-8 文本，SandboxArk 无法预览。" }
+        }
+      }
+    },
+    "This folder could not be listed." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法列出此文件夹。" }
+        }
+      }
+    },
+    "This folder is empty." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "此文件夹为空。" }
+        }
+      }
+    },
+    "This scan is incomplete, so a backup of this sandbox would be partial." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "本次扫描不完整，因此这个沙盒的备份会是部分备份。" }
+        }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "重试" }
+        }
+      }
+    },
+    "Unknown App" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "未知 App" }
+        }
+      }
+    },
+    "Unknown Type" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "未知类型" }
+        }
+      }
+    },
+    "Unreadable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法读取" }
+        }
+      }
+    },
+    "Unsupported File Type" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "不支持的文件类型" }
+        }
+      }
+    },
+    "Verifying the archive…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在校验归档…" }
+        }
+      }
+    },
+    "Writing the archive…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在写入归档…" }
+        }
+      }
+    },
+    "Wrote %@ of %@ files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "已写入 %@/%@ 个文件" }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

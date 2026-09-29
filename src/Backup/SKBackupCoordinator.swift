@@ -16,7 +16,9 @@ struct SKBackupCoordinator {
     struct Request: Sendable {
         var app: SKManifestDocument.App
         var environment: SKManifestDocument.Environment
-        /// Final file name of the archive; the `.partial` stage replaces its extension.
+        /// Published archive name, fixed per host app: the slot holds one file, so a name
+        /// that changed per run would leave the previous archive behind instead of
+        /// replacing it. The creation time lives in the manifest, not in the name.
         var outputName: String
         var createdAt: String
         var kind: SKManifestDocument.Kind = .user
@@ -45,10 +47,10 @@ struct SKBackupCoordinator {
     }
 
     struct Outcome: Sendable {
-        /// Home-relative path of the verified archive, kept in staging until the share
-        /// handoff closes.
+        /// Home-relative path of the verified archive, already published into the slot the
+        /// next backup replaces. It is staging, not storage: the system may reclaim `tmp`, so
+        /// only an exported copy outlives the container.
         var archivePath: String
-        var stagingPath: String
         var manifest: SKManifestDocument
         var verifiedMembers: Int
         var verifiedBytes: Int64
@@ -139,7 +141,6 @@ struct SKBackupCoordinator {
 
             try transaction.finalize()
             return Outcome(archivePath: transaction.archivePath,
-                           stagingPath: transaction.stagingName,
                            manifest: documents.manifest,
                            verifiedMembers: contents.members.count,
                            verifiedBytes: documents.manifest.backup.totalBytes)
@@ -227,7 +228,6 @@ struct SKBackupCoordinator {
 
         let stagedName = transaction.nextStagedName()
         let target = try SKArchiveIO.createExclusive(name: stagedName, in: transaction.staging)
-        transaction.record(stagedName: stagedName)
         defer { SKArchiveIO.close(target) }
 
         var hasher = SKSHA256.Hasher()
@@ -478,38 +478,27 @@ struct SKBackupCoordinator {
     }
 }
 
-/// One transaction's private staging directory and the cleanup that owns it.
+/// One transaction's private staging directory, the slot it renames the archive into, and
+/// the cleanup that owns both. The slot is `stagingParent` itself: it holds at most one
+/// archive, beside the transient transaction directories.
 private final class Transaction {
     static let payloadDirectory = "payload"
 
     let request: SKBackupCoordinator.Request
-    let stagingName: String
     let stagingParent: Int32
     let staging: Int32
     let partialName: String
-    var archivePath: String { stagingName + "/" + request.outputName }
+    var archivePath: String { SKReservedPaths.stagingRoot + "/" + request.outputName }
 
     private let directoryName: String
-    private var stagedNames: [String] = []
     private var nextPayloadIndex = 0
     private var finalized = false
 
     init(home: SKAuthorizedRoot, request: SKBackupCoordinator.Request) throws {
         let identifier = SKBackupCoordinator.makeTransactionID()
-        let stagingName = SKReservedPaths.stagingRoot + "/" + identifier
-        let stem = String(request.outputName.dropLast(".sandboxark".count))
-        let partialName = stem + ".partial"
-
-        let tmp = try SKBackupStaging.openOrCreateDirectory(name: "tmp", in: home.descriptor)
-        let parent: Int32
+        let parent = try SKBackupStaging.openOrCreatePath(SKReservedPaths.stagingRoot,
+                                                          under: home.descriptor)
         let staging: Int32
-        do {
-            parent = try SKBackupStaging.openOrCreateDirectory(name: "SandboxArk", in: tmp)
-        } catch {
-            SKArchiveIO.close(tmp)
-            throw error
-        }
-        SKArchiveIO.close(tmp)
         do {
             staging = try SKBackupStaging.openOrCreateDirectory(name: identifier, in: parent)
         } catch {
@@ -518,8 +507,7 @@ private final class Transaction {
         }
         self.request = request
         self.directoryName = identifier
-        self.stagingName = stagingName
-        self.partialName = partialName
+        self.partialName = String(request.outputName.dropLast(".sandboxark".count)) + ".partial"
         self.stagingParent = parent
         self.staging = staging
     }
@@ -535,23 +523,35 @@ private final class Transaction {
         return Transaction.payloadDirectory + "/" + String(nextPayloadIndex)
     }
 
-    func record(stagedName: String) {
-        stagedNames.append(stagedName)
-    }
-
-    /// Promotes the `.partial` to the archive, then drops the staged payload copies.
+    /// Publishes the verified `.partial` into the slot and drops this transaction's staging.
+    /// The rename replaces the previous archive in one step, so the slot never holds two
+    /// archives and a failure before the rename leaves the previous one untouched.
     func finalize() throws {
-        try SKBackupStaging.rename(partialName, to: request.outputName, in: staging)
-        try SKArchiveIO.sync(staging)
+        try SKBackupStaging.rename(partialName,
+                                   in: staging,
+                                   to: request.outputName,
+                                   in: stagingParent)
         finalized = true
+        var failure: SKError?
+        do {
+            try SKArchiveIO.sync(stagingParent)
+        } catch let error as SKError {
+            failure = error
+        }
         set(.readyToShare)
         do {
-            try SKBackupStaging.removeStagedPayload(stagedNames, in: staging)
-        } catch {
-            throw SKError(code: .storageDurabilityFailure,
+            try removeStaging()
+        } catch let error as SKError {
+            failure = failure ?? error
+        }
+        if let failure {
+            throw SKError(code: failure.code,
                           stage: "cleanup",
+                          retryable: failure.retryable,
+                          userAction: failure.userAction,
+                          underlyingCode: failure.underlyingCode,
                           recoveryState: SKBackupCoordinator.State.readyToShare.rawValue,
-                          reason: "archive is verified but staged payload removal failed")
+                          reason: failure.reason)
         }
     }
 
@@ -563,10 +563,9 @@ private final class Transaction {
         if finalized { return failure }
         let isCancelled = failure.code == .cancelled
         do {
-            try SKBackupStaging.unlink(partialName, in: staging)
-            try SKBackupStaging.unlink(request.outputName, in: staging)
-            try SKBackupStaging.removeStagedPayload(stagedNames, in: staging)
-            try SKBackupStaging.removeDirectory(name: directoryName, in: stagingParent)
+            // The published slot is never touched here: only a completed transaction may
+            // replace the previous archive, so a failed run leaves it in place.
+            try removeStaging()
         } catch {
             failure.recoveryState = SKBackupCoordinator.State.cleanupRequired.rawValue
             set(.cleanupRequired)
@@ -576,6 +575,23 @@ private final class Transaction {
         failure.recoveryState = state.rawValue
         set(state)
         return failure
+    }
+
+    /// Removes this transaction's staging directory and everything it created. The shape is
+    /// fixed — `payload/` holding flat positional copies, plus at most one `.partial` — so
+    /// cleanup names those entries instead of walking an arbitrary tree. Entries the system
+    /// already reclaimed are not a failure.
+    private func removeStaging() throws {
+        if let payload = try? SKBackupStaging.openDirectory(name: Transaction.payloadDirectory,
+                                                           in: staging) {
+            defer { SKArchiveIO.close(payload) }
+            for index in 0..<nextPayloadIndex {
+                try SKBackupStaging.unlink(String(index), in: payload)
+            }
+        }
+        try SKBackupStaging.removeDirectory(name: Transaction.payloadDirectory, in: staging)
+        try SKBackupStaging.unlink(partialName, in: staging)
+        try SKBackupStaging.removeDirectory(name: directoryName, in: stagingParent)
     }
 
     func close() {
@@ -661,6 +677,23 @@ private struct MemberPlan {
 /// creates paths, and source-path rules deliberately do not apply inside it: the reserved
 /// prefix is exactly what makes the tree private.
 private enum SKBackupStaging {
+    /// Opens a home-relative directory SandboxArk owns, creating every missing component.
+    /// The caller owns the returned descriptor; the intermediates are closed here.
+    static func openOrCreatePath(_ relativePath: String, under home: Int32) throws -> Int32 {
+        var owned: [Int32] = []
+        do {
+            for component in relativePath.split(separator: "/", omittingEmptySubsequences: true) {
+                owned.append(try openOrCreateDirectory(name: String(component), in: owned.last ?? home))
+            }
+        } catch {
+            for descriptor in owned { SKArchiveIO.close(descriptor) }
+            throw error
+        }
+        guard let deepest = owned.last else { throw failure(EINVAL, "open") }
+        for descriptor in owned.dropLast() { SKArchiveIO.close(descriptor) }
+        return deepest
+    }
+
     static func openOrCreateDirectory(name: String, in parent: Int32) throws -> Int32 {
         if let descriptor = try? openDirectory(name: name, in: parent) { return descriptor }
         guard mkdirat(parent, name, 0o700) == 0 || errno == EEXIST else {
@@ -677,8 +710,13 @@ private enum SKBackupStaging {
         return descriptor
     }
 
-    static func rename(_ from: String, to: String, in directory: Int32) throws {
-        guard renameat(directory, from, directory, to) == 0 else { throw failure(errno, "rename") }
+    /// Replaces `to` with `from` in one step, even across directories on the same volume:
+    /// a reader sees either the previous archive or the new one, never a partial file.
+    static func rename(_ from: String, in fromDirectory: Int32,
+                       to: String, in toDirectory: Int32) throws {
+        guard renameat(fromDirectory, from, toDirectory, to) == 0 else {
+            throw failure(errno, "rename")
+        }
     }
 
     static func unlink(_ name: String, in directory: Int32) throws {
@@ -691,13 +729,6 @@ private enum SKBackupStaging {
         guard unlinkat(parent, name, AT_REMOVEDIR) == 0 || errno == ENOENT else {
             throw failure(errno, "rmdir")
         }
-    }
-
-    /// Removes the staged payload copies and their directory; leftover payload is a space
-    /// failure, not data.
-    static func removeStagedPayload(_ names: [String], in directory: Int32) throws {
-        for name in names { try unlink(name, in: directory) }
-        try removeDirectory(name: Transaction.payloadDirectory, in: directory)
     }
 
     private static func failure(_ code: Int32, _ operation: String) -> SKError {

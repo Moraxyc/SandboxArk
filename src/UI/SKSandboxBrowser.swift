@@ -30,6 +30,24 @@ final class SKScanCancellation: @unchecked Sendable {
     }
 }
 
+/// The exclusion vocabulary the browser and the backup flow share, so one reason never reads
+/// two ways. The reason code itself stays in the diagnostics record.
+enum SKExclusionLabel {
+    static func text(_ reason: SKExclusionReason) -> String {
+        switch reason {
+        case .cache: String(localized: "Cache", bundle: .sandboxark)
+        case .tmp: String(localized: "Temporary Files", bundle: .sandboxark)
+        case .logs: String(localized: "Logs", bundle: .sandboxark)
+        case .sandboxArkPrivate: String(localized: "SandboxArk's Own Files", bundle: .sandboxark)
+        case .keychain: String(localized: "Keychain", bundle: .sandboxark)
+        case .credentialStore: String(localized: "Credential Store", bundle: .sandboxark)
+        case .symlink: String(localized: "Symbolic Link", bundle: .sandboxark)
+        case .specialFile: String(localized: "Unsupported File Type", bundle: .sandboxark)
+        case .userOptOut: String(localized: "Category Not Enabled", bundle: .sandboxark)
+        }
+    }
+}
+
 /// Read-only browse of the roots the current process is authorized to read. Paths are shown
 /// relative to their root, and listing and preview both go through `SKPathResolver`, so
 /// nothing here reaches an object the scanner could not; previews read one bounded buffer.
@@ -65,13 +83,14 @@ final class SKSandboxBrowserViewController: UITableViewController {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         if relativePath == nil {
-            title = "Browse Sandbox"
+            title = String(localized: "Browse Sandbox", bundle: .sandboxark)
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
                                                                 target: self,
                                                                 action: #selector(doneTapped))
             startScan()
         } else {
-            title = relativePath.map { $0.split(separator: "/").last.map(String.init) ?? $0 } ?? "Home"
+            title = relativePath.map { $0.split(separator: "/").last.map(String.init) ?? $0 }
+                ?? String(localized: "Home", bundle: .sandboxark)
         }
     }
 
@@ -119,10 +138,12 @@ final class SKSandboxBrowserViewController: UITableViewController {
     private func setRescanItem(isScanning: Bool) {
         guard relativePath == nil else { return }
         if isScanning {
-            let item = UIBarButtonItem(title: "Stop", style: .plain, target: self, action: #selector(stopTapped))
+            let item = UIBarButtonItem(title: String(localized: "Stop", bundle: .sandboxark),
+                                       style: .plain, target: self, action: #selector(stopTapped))
             navigationItem.leftBarButtonItem = item
         } else {
-            let item = UIBarButtonItem(title: "Rescan", style: .plain, target: self, action: #selector(rescanTapped))
+            let item = UIBarButtonItem(title: String(localized: "Rescan", bundle: .sandboxark),
+                                       style: .plain, target: self, action: #selector(rescanTapped))
             navigationItem.leftBarButtonItem = item
         }
     }
@@ -163,69 +184,95 @@ final class SKSandboxBrowserViewController: UITableViewController {
 
     private var scanSections: [Section] {
         guard let report else {
-            return [Section(title: nil, items: [.message("Scanning the standard roots…")])]
+            return [Section(title: nil,
+                            items: [.message(String(localized: "Scanning the sandbox…", bundle: .sandboxark))])]
         }
         var summary: [Item] = [
-            .detail(title: "Status", value: statusText(report.status)),
-            .detail(title: "Files", value: "\(report.includedFiles)"),
-            .detail(title: "Size", value: Self.byteText(report.includedBytes)),
-            .detail(title: "Unreadable", value: "\(report.unreadableCount)"),
+            .detail(title: String(localized: "Status", bundle: .sandboxark), value: statusText(report.status)),
+            .detail(title: String(localized: "Files", bundle: .sandboxark),
+                    value: report.includedFiles.formatted()),
+            .detail(title: String(localized: "Size", bundle: .sandboxark),
+                    value: Self.byteText(report.includedBytes)),
+            .detail(title: String(localized: "Unreadable", bundle: .sandboxark),
+                    value: report.unreadableCount.formatted()),
         ]
         if !report.isComplete {
-            summary.append(.message("The scan is incomplete: unreadable or unrepresented items are excluded from a backup."))
+            summary.append(.message(String(
+                localized: "This scan is incomplete, so a backup of this sandbox would be partial.",
+                bundle: .sandboxark)))
         }
         let excluded = report.excludedCounts
             .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { Item.detail(title: Self.reasonText($0.key), value: "\($0.value)") }
+            .map { Item.detail(title: SKExclusionLabel.text($0.key), value: $0.value.formatted()) }
         return [
-            Section(title: "Scan", items: summary),
-            Section(title: "Excluded", items: excluded.isEmpty ? [.message("Nothing was excluded.")] : excluded),
-            Section(title: "Roots", items: report.roots.map { Item.root($0) }),
+            Section(title: String(localized: "Scan", bundle: .sandboxark), items: summary),
+            Section(title: String(localized: "Excluded", bundle: .sandboxark),
+                    items: excluded.isEmpty
+                        ? [.message(String(localized: "Nothing was excluded.", bundle: .sandboxark))]
+                        : excluded),
+            Section(title: String(localized: "Scanned Folders", bundle: .sandboxark),
+                    items: report.roots.map { Item.root($0) }),
         ]
     }
 
     private func directorySection(_ relativePath: String) -> Section {
         let listing = SKScanner.listDirectory(relativePath, under: home)
         if let error = listing.error {
-            return Section(title: relativePath, items: [.message("\(error.code.rawValue) in \(error.stage ?? "access")")])
+            SKRuntimeDiagnostics.record("browse_listing_failed;code=\(error.code.rawValue);"
+                + "stage=\(error.stage ?? "access")")
+            return Section(title: relativePath,
+                           items: [.message(String(localized: "This folder could not be listed.",
+                                                   bundle: .sandboxark))])
         }
         let entries = listing.entries.sorted { left, right in
             if (left.kind == .directory) != (right.kind == .directory) { return left.kind == .directory }
             return left.relativePath < right.relativePath
         }
         var items: [Item] = []
-        if listing.status != .complete {
-            items.append(.message("The listing stopped early: \(statusText(listing.status))."))
+        switch listing.status {
+        case .complete:
+            break
+        case .cancelled:
+            items.append(.message(String(localized: "The listing stopped before it finished.",
+                                         bundle: .sandboxark)))
+        case .entryLimitExceeded:
+            items.append(.message(String(localized: "The listing stopped at the entry limit.",
+                                         bundle: .sandboxark)))
+        case .depthExceeded:
+            items.append(.message(String(localized: "The listing stopped at the depth limit.",
+                                         bundle: .sandboxark)))
         }
         items.append(contentsOf: entries.map { Item.child($0) })
-        if entries.isEmpty { items.append(.message("This directory is empty.")) }
+        if entries.isEmpty {
+            items.append(.message(String(localized: "This folder is empty.", bundle: .sandboxark)))
+        }
         return Section(title: relativePath, items: items)
     }
 
+    /// A status label rather than prose: it fills one row of the summary and never ends a
+    /// sentence, so each value is capitalized like a heading.
     private func statusText(_ status: SKScanStatus) -> String {
         switch status {
-        case .complete: "complete"
-        case .cancelled: "cancelled"
-        case .entryLimitExceeded: "stopped at the entry limit"
-        case .depthExceeded: "stopped at the depth limit"
+        case .complete: String(localized: "Complete", bundle: .sandboxark)
+        case .cancelled: String(localized: "Cancelled", bundle: .sandboxark)
+        case .entryLimitExceeded: String(localized: "Stopped at the Entry Limit", bundle: .sandboxark)
+        case .depthExceeded: String(localized: "Stopped at the Depth Limit", bundle: .sandboxark)
         }
     }
 
-    private static func reasonText(_ reason: SKExclusionReason) -> String {
-        switch reason {
-        case .cache: "Cache"
-        case .tmp: "Temporary"
-        case .logs: "Log"
-        case .sandboxArkPrivate: "SandboxArk private state"
-        case .keychain: "Keychain"
-        case .credentialStore: "Credential store"
-        case .symlink: "Symbolic link"
-        case .specialFile: "Special file"
-        case .userOptOut: "Opt-in category (off)"
+    /// The right-hand detail of a listed item, which is its size for a file and its type
+    /// otherwise; the raw kind is never shown.
+    private static func kindText(_ entry: SKScanEntry) -> String {
+        switch entry.kind {
+        case .directory: String(localized: "Folder", bundle: .sandboxark)
+        case .regular: Self.byteText(entry.size)
+        case .symlink: SKExclusionLabel.text(.symlink)
+        case .special: SKExclusionLabel.text(.specialFile)
+        case .unknown: String(localized: "Unknown Type", bundle: .sandboxark)
         }
     }
 
-    private static func byteText(_ bytes: Int64) -> String {
+    fileprivate static func byteText(_ bytes: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 
@@ -274,8 +321,13 @@ final class SKSandboxBrowserViewController: UITableViewController {
             cell.accessoryType = .none
         case .root(let root):
             configuration.text = root.relativePath
-            configuration.secondaryText = "\(root.includedFiles) files · \(Self.byteText(root.includedBytes))"
-                + " · \(root.isComplete ? "complete" : "partial")"
+            let completeness = String(localized: root.isComplete ? "Complete" : "Partial",
+                                      bundle: .sandboxark)
+            configuration.secondaryText = String(
+                localized: """
+                \(root.includedFiles.formatted()) files · \
+                \(Self.byteText(root.includedBytes)) · \(completeness)
+                """, bundle: .sandboxark)
             cell.selectionStyle = .default
             cell.accessoryType = .disclosureIndicator
         case .child(let entry):
@@ -291,14 +343,14 @@ final class SKSandboxBrowserViewController: UITableViewController {
     }
 
     private func childDetail(_ entry: SKScanEntry) -> String {
-        if let error = entry.error {
-            return "\(error.code.rawValue)\(error.underlyingCode.map { " (errno \($0))" } ?? "")"
+        if entry.error != nil {
+            return String(localized: "Could Not Be Read", bundle: .sandboxark)
         }
         if let reason = entry.excludedReason {
-            return "Excluded: \(Self.reasonText(reason))"
+            return String(localized: "Excluded: \(SKExclusionLabel.text(reason))", bundle: .sandboxark)
         }
-        let kind = entry.kind == .directory ? "Folder" : (entry.kind == .regular ? Self.byteText(entry.size) : entry.kind.rawValue)
-        return "\(kind) · \(Self.dateText(entry.modifiedAt))"
+        return String(localized: "\(Self.kindText(entry)) · \(Self.dateText(entry.modifiedAt))",
+                      bundle: .sandboxark)
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -390,22 +442,25 @@ final class SKFilePreviewViewController: UIViewController {
 
     private func previewText() -> String {
         guard SKFilePreviewViewController.isPreviewable(relativePath) else {
-            return "Not previewable here. SandboxArk previews text, JSON and plist only."
+            return String(localized: "SandboxArk can preview text, JSON, and plist files only.",
+                          bundle: .sandboxark)
         }
         do {
             let opened = try SKPathResolver.openRegularFile(atPath: relativePath, under: home)
             defer { SKPathResolver.closeDescriptor(opened.descriptor) }
             let read = try SKStreamingIO.read(from: opened.descriptor, upTo: SKResourceLimits.maxPreviewBytes)
             guard let text = String(bytes: read.bytes, encoding: .utf8) else {
-                return "Not previewable here: the file is not UTF-8 text."
+                return String(localized: "This file is not UTF-8 text, so SandboxArk cannot preview it.",
+                              bundle: .sandboxark)
             }
-            return read.truncated
-                ? text + "\n\n— preview truncated at \(SKResourceLimits.maxPreviewBytes) bytes —"
-                : text
-        } catch let error as SKError {
-            return "\(error.code.rawValue)\(error.relativePath.map { " at \($0)" } ?? "")"
+            guard read.truncated else { return text }
+            let limit = SKSandboxBrowserViewController.byteText(Int64(SKResourceLimits.maxPreviewBytes))
+            return text + "\n\n" + String(localized: "Preview truncated at \(limit).", bundle: .sandboxark)
         } catch {
-            return "The file could not be read."
+            if let error = error as? SKError {
+                SKRuntimeDiagnostics.record("preview_failed;code=\(error.code.rawValue)")
+            }
+            return String(localized: "The file could not be read.", bundle: .sandboxark)
         }
     }
 

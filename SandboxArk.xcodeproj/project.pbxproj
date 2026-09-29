@@ -52,7 +52,10 @@
 		0FA11CE00002000000000043 /* SKZipTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000046 /* SKZipTimestamp.swift */; };
 		0FA11CE00002000000000044 /* SKJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000047 /* SKJSON.swift */; };
 		0FA11CE00002000000000045 /* SKManifestDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000048 /* SKManifestDocument.swift */; };
-/* End PBXBuildFile section */
+		/* End PBXBuildFile section */
+		0FA11CE00002000000000061 /* SKLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000061 /* SKLocalization.swift */; };
+		0FA11CE00002000000000062 /* SKLocalizationSection.c in Sources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000062 /* SKLocalizationSection.c */; };
+		0FA11CE00002000000000063 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0FA11CE00001000000000060 /* Localizable.xcstrings */; };
 
 /* Begin PBXFileReference section */
 		0FA11CE00001000000000001 /* Bootstrap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Bootstrap.c; sourceTree = "<group>"; };
@@ -103,7 +106,11 @@
 		0FA11CE00001000000000046 /* SKZipTimestamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKZipTimestamp.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000047 /* SKJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKJSON.swift; sourceTree = "<group>"; };
 		0FA11CE00001000000000048 /* SKManifestDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKManifestDocument.swift; sourceTree = "<group>"; };
-/* End PBXFileReference section */
+		/* End PBXFileReference section */
+		0FA11CE00001000000000060 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		0FA11CE00001000000000061 /* SKLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKLocalization.swift; sourceTree = "<group>"; };
+		0FA11CE00001000000000062 /* SKLocalizationSection.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SKLocalizationSection.c; sourceTree = "<group>"; };
+		0FA11CE00001000000000063 /* SandboxArkLocalization.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SandboxArkLocalization.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 
 /* Begin PBXFrameworksBuildPhase section */
 		0FA11CE00003000000000002 /* Frameworks */ = {
@@ -120,7 +127,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXFrameworksBuildPhase section */
+		0FA11CE00003000000000063 /* Localization Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0FA11CE00000000000000002 = {
@@ -149,6 +163,7 @@
 				0FA11CE00000000000000023 /* Logging */,
 				0FA11CE00000000000000024 /* Error */,
 				0FA11CE00000000000000025 /* TestHost */,
+				0FA11CE00000000000000060 /* Localization */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -158,6 +173,7 @@
 			children = (
 				0FA11CE00001000000000040 /* sandboxark.dylib */,
 				0FA11CE00001000000000041 /* SandboxArkTestHost.app */,
+				0FA11CE00001000000000063 /* SandboxArkLocalization.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -321,7 +337,17 @@
 			path = SandboxArkTestHost;
 			sourceTree = "<group>";
 		};
-/* End PBXGroup section */
+		0FA11CE00000000000000060 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				0FA11CE00001000000000061 /* SKLocalization.swift */,
+				0FA11CE00001000000000062 /* SKLocalizationSection.c */,
+				0FA11CE00001000000000060 /* Localizable.xcstrings */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		0FA11CE00004000000000001 /* SandboxArkDylib */ = {
@@ -334,11 +360,30 @@
 			buildRules = (
 			);
 			dependencies = (
+				0FA11CE00007000000000001 /* Localization target dependency */,
 			);
 			name = SandboxArkDylib;
 			productName = sandboxark;
 			productReference = 0FA11CE00001000000000040 /* sandboxark.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
+		};
+		0FA11CE00004000000000003 /* SandboxArkLocalization */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FA11CE00005000000000004 /* Build configuration list for PBXNativeTarget "SandboxArkLocalization" */;
+			buildPhases = (
+				0FA11CE00003000000000064 /* Localization Sources */,
+				0FA11CE00003000000000063 /* Localization Frameworks */,
+				0FA11CE00003000000000060 /* Resources */,
+				0FA11CE00003000000000062 /* Embed Localizations */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SandboxArkLocalization;
+			productName = SandboxArkLocalization;
+			productReference = 0FA11CE00001000000000063 /* SandboxArkLocalization.bundle */;
+			productType = "com.apple.product-type.bundle";
 		};
 		0FA11CE00004000000000002 /* SandboxArkTestHost */ = {
 			isa = PBXNativeTarget;
@@ -358,6 +403,24 @@
 		};
 /* End PBXNativeTarget section */
 
+/* Begin PBXContainerItemProxy section */
+		0FA11CE00008000000000001 /* Localization target proxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0FA11CE00000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FA11CE00004000000000003;
+			remoteInfo = SandboxArkLocalization;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		0FA11CE00007000000000001 /* Localization target dependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FA11CE00004000000000003 /* SandboxArkLocalization */;
+			targetProxy = 0FA11CE00008000000000001 /* Localization target proxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXProject section */
 		0FA11CE00000000000000001 /* Project object */ = {
 			isa = PBXProject;
@@ -372,6 +435,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 0FA11CE00000000000000002;
 			productRefGroup = 0FA11CE00000000000000004 /* Products */;
@@ -380,10 +444,42 @@
 			targets = (
 				0FA11CE00004000000000001 /* SandboxArkDylib */,
 				0FA11CE00004000000000002 /* SandboxArkTestHost */,
+				0FA11CE00004000000000003 /* SandboxArkLocalization */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		0FA11CE00003000000000060 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0FA11CE00002000000000063 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0FA11CE00003000000000062 /* Embed Localizations */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/embed-localizations.sh",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)",
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/sandboxark-localizations.tar",
+				"$(DERIVED_FILE_DIR)/sandboxark.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "/bin/bash \"${SRCROOT}/scripts/embed-localizations.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 /* Begin PBXSourcesBuildPhase section */
 		0FA11CE00003000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -428,6 +524,8 @@
 				0FA11CE00002000000000032 /* SKReservedPaths.swift in Sources */,
 				0FA11CE00002000000000033 /* SKLocalLogger.swift in Sources */,
 				0FA11CE00002000000000034 /* SKError.swift in Sources */,
+				0FA11CE00002000000000061 /* SKLocalization.swift in Sources */,
+				0FA11CE00002000000000062 /* SKLocalizationSection.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -441,6 +539,13 @@
 				0FA11CE00002000000000038 /* SKTestHostQuiescenceAdapter.swift in Sources */,
 				0FA11CE00002000000000039 /* SKTestHostDiagnostics.swift in Sources */,
 				0FA11CE00002000000000040 /* SKTestHostBrowseFixture.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FA11CE00003000000000064 /* Localization Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,7 +649,13 @@
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_DYLIB_INSTALL_NAME = "@rpath/sandboxark.dylib";
 				MACH_O_TYPE = mh_dylib;
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-sectcreate",
+					"__DATA",
+					"__sk_i18n",
+					"$(BUILT_PRODUCTS_DIR)/sandboxark-localizations.tar",
+				);
 				PRODUCT_NAME = sandboxark;
 				SKIP_INSTALL = NO;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -567,7 +678,13 @@
 				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_DYLIB_INSTALL_NAME = "@rpath/sandboxark.dylib";
 				MACH_O_TYPE = mh_dylib;
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = (
+					"-lz",
+					"-sectcreate",
+					"__DATA",
+					"__sk_i18n",
+					"$(BUILT_PRODUCTS_DIR)/sandboxark-localizations.tar",
+				);
 				PRODUCT_NAME = sandboxark;
 				SKIP_INSTALL = NO;
 				SUPPORTED_PLATFORMS = iphoneos;
@@ -576,6 +693,40 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		0FA11CE00006000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moraxyc.SandboxArk.Localization;
+				PRODUCT_NAME = SandboxArkLocalization;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		0FA11CE00006000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moraxyc.SandboxArk.Localization;
+				PRODUCT_NAME = SandboxArkLocalization;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = bundle;
 			};
 			name = Release;
 		};
@@ -635,6 +786,15 @@
 			buildConfigurations = (
 				0FA11CE00006000000000005 /* Debug */,
 				0FA11CE00006000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0FA11CE00005000000000004 /* Build configuration list for PBXNativeTarget "SandboxArkLocalization" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FA11CE00006000000000007 /* Debug */,
+				0FA11CE00006000000000008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

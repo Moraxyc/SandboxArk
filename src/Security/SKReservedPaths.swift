@@ -3,7 +3,9 @@
 enum SKReservedPaths {
     /// Long-lived private state: restore journal, snapshots, history, diagnostics.
     static let applicationSupport = "Library/Application Support/SandboxArk"
-    /// Per-operation staging only; transaction IDs live here and never reach the format.
+    /// Per-operation staging and the one archive slot. Both are rebuildable intermediates, so
+    /// they stay in `tmp`: the system may reclaim the whole tree on its own schedule, which is
+    /// why an exported copy is the only one SandboxArk can promise.
     static let stagingRoot = "tmp/SandboxArk"
 
     static let all = [applicationSupport, stagingRoot]
