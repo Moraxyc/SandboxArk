@@ -1,0 +1,49 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    release:
+        runs-on: macos-latest
+        timeout-minutes: 60
+        permissions:
+            contents: write
+            attestations: write
+            id-token: write
+        steps:
+            - uses: actions/checkout@v7
+            - name: Validate release tag
+              shell: bash
+              run: |
+                  if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "::error::Tag must match vMAJOR.MINOR.PATCH"
+                    exit 1
+                  fi
+            - name: Build
+              env:
+                  NO_COLOR: "1"
+              run: bash scripts/build.sh
+            - name: Attest build provenance
+              uses: actions/attest-build-provenance@v4
+              with:
+                  subject-path: dist/SandboxArk/sandboxark.dylib
+            - name: Publish release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+              run: |
+                  gh release create "$GITHUB_REF_NAME" \
+                    dist/SandboxArk/sandboxark.dylib \
+                    --verify-tag \
+                    --title "$GITHUB_REF_NAME" \
+                    --generate-notes

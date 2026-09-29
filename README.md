@@ -22,6 +22,17 @@ sh scripts/build.sh
 - `SandboxArkTestHost.ipa`：项目自带的测试 App
 - `build-metadata.txt`：本次构建的 Xcode、iOS SDK、Swift、Clang 和目标配置
 
+## 发布
+
+推送格式为 `vMAJOR.MINOR.PATCH` 的 tag 会触发 GitHub Actions，在 macOS 上构建并将 `sandboxark.dylib` 上传到 GitHub Release
+
+可以使用 GitHub CLI 验证 release asset 和构建证明（将版本替换为实际值）：
+
+~~~sh
+gh release verify-asset v0.1.0 sandboxark.dylib --repo moraxyc/SandboxArk
+gh attestation verify sandboxark.dylib --repo moraxyc/SandboxArk
+~~~
+
 ## 注入并安装
 
 1. 在签名工具里导入目标 App 的 IPA。
