@@ -75,15 +75,24 @@ final class SKBackupFlowViewController: UIViewController, UIAdaptivePresentation
                                     reason: "the system clock is outside the archive's timestamp range"))
         }
         render()
+        registerContentSizeCategoryChanges()
         SKRuntimeDiagnostics.record("backup_opened")
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory,
-           case .preflight = phase {
-            render()
+    private func registerContentSizeCategoryChanges() {
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitPreferredContentSizeCategory.self],
+                                    action: #selector(contentSizeCategoryDidChange))
+        } else {
+            NotificationCenter.default.addObserver(self,
+                                                   selector: #selector(contentSizeCategoryDidChange),
+                                                   name: UIContentSizeCategory.didChangeNotification,
+                                                   object: nil)
         }
+    }
+
+    @objc private func contentSizeCategoryDidChange() {
+        if case .preflight = phase { render() }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -372,6 +381,22 @@ final class SKBackupFlowViewController: UIViewController, UIAdaptivePresentation
             }
             lines.append(String(localized: "Incomplete Folders: \(described.joined(separator: ", "))",
                                 bundle: .sandboxark))
+        }
+        // The manifest is the record of what was checked, so the summary is read back from
+        // it: a database that was not checked never appears as a pass.
+        let groups = (try? SKSQLiteGroup.decode(manifest.sqliteGroups)) ?? []
+        if !groups.isEmpty {
+            let verified = groups.filter { $0.status == .verified }.count
+            lines.append(String(localized: "Databases: \(verified.formatted()) of \(groups.count.formatted()) checked",
+                                bundle: .sandboxark))
+            let unchecked = groups.filter { $0.status != .verified }
+            if !unchecked.isEmpty {
+                let described = unchecked.map {
+                    "\($0.baseName) (\(SKBackupFlowViewController.groupWarningText($0.warnings.first)))"
+                }
+                lines.append(String(localized: "Not Verified: \(described.joined(separator: ", "))",
+                                    bundle: .sandboxark))
+            }
         }
         detailLabel.text = lines.joined(separator: "\n")
 
@@ -704,6 +729,7 @@ final class SKBackupFlowViewController: UIViewController, UIAdaptivePresentation
         case .prepared: String(localized: "Starting the backup.", bundle: .sandboxark)
         case .scanning: String(localized: "Scanning the sandbox…", bundle: .sandboxark)
         case .staging: String(localized: "Copying files…", bundle: .sandboxark)
+        case .checkingDatabases: String(localized: "Checking databases…", bundle: .sandboxark)
         case .archiving: String(localized: "Writing the archive…", bundle: .sandboxark)
         case .verifying: String(localized: "Verifying the archive…", bundle: .sandboxark)
         case .readyToShare: String(localized: "Backup Verified", bundle: .sandboxark)
@@ -758,6 +784,39 @@ final class SKBackupFlowViewController: UIViewController, UIAdaptivePresentation
         return parts.isEmpty
             ? String(localized: "Some folders could not be scanned completely.", bundle: .sandboxark)
             : parts.joined(separator: " ")
+    }
+
+    /// Why one database group is not shown as checked. The first warning is the reason the
+    /// group left the passing path, so the list stays short enough for one screen.
+    private static func groupWarningText(_ warning: SKSQLiteGroup.Warning?) -> String {
+        switch warning {
+        case .databaseUnreadable:
+            String(localized: "the database could not be read", bundle: .sandboxark)
+        case .sidecarUnreadable:
+            String(localized: "a database sidecar could not be read", bundle: .sandboxark)
+        case .memberChanged:
+            String(localized: "the database changed while it was copied", bundle: .sandboxark)
+        case .memberExcluded:
+            String(localized: "part of the database is excluded by policy", bundle: .sandboxark)
+        case .verificationSkipped:
+            String(localized: "the group is incomplete, so it was not checked", bundle: .sandboxark)
+        case .verificationUnsupported:
+            String(localized: "this build cannot check databases", bundle: .sandboxark)
+        case .verificationBusy:
+            String(localized: "the database copy was busy", bundle: .sandboxark)
+        case .verificationFailed:
+            String(localized: "the integrity check did not pass", bundle: .sandboxark)
+        case .verificationTimedOut:
+            String(localized: "the check did not finish in time", bundle: .sandboxark)
+        case .verificationBudgetExhausted:
+            String(localized: "the check exceeded its budget", bundle: .sandboxark)
+        case .verificationCopyFailed:
+            String(localized: "the disposable copy could not be made", bundle: .sandboxark)
+        case .storageInsufficient:
+            String(localized: "there was not enough space to check", bundle: .sandboxark)
+        case .none:
+            String(localized: "the database is not in the archive", bundle: .sandboxark)
+        }
     }
 
     /// What the failure did to the data, in the engine's recovery vocabulary.

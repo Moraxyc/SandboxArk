@@ -38,10 +38,12 @@ enum SKZipReader {
         let manifestBytes = try stream(members[manifestIndex],
                                        descriptor: descriptor,
                                        retaining: SKResourceLimits.maxManifestBytes)
+        // The manifest is identified before the hash index is read, so an archive from a
+        // newer major format is refused without streaming up to the index limit for nothing.
+        let manifest = try SKManifestDocument.decode(try SKJSONParser.parse(manifestBytes.payload))
         let hashBytes = try stream(members[hashIndexIndex],
                                    descriptor: descriptor,
                                    retaining: SKResourceLimits.maxHashIndexBytes)
-        let manifest = try SKManifestDocument.decode(try SKJSONParser.parse(manifestBytes.payload))
         let hashIndex = try SKHashIndexDocument.decode(try SKJSONParser.parse(hashBytes.payload,
                                                                              limits: hashLimits))
 

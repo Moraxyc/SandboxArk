@@ -85,7 +85,8 @@ final class HostViewController: UIViewController {
         let report = SKTestHostBrowseFixture.create(in: URL(fileURLWithPath: NSHomeDirectory()))
         SKTestHostDiagnostics.record(report.summary)
         statusLabel.text = report.failures.isEmpty
-            ? "Fixture created: \(report.directories) folders, \(report.files) files, \(report.links) links."
+            ? "Fixture created: \(report.directories) folders, \(report.files) files, "
+                + "\(report.links) links, \(report.databases) databases."
             : "Fixture created with \(report.failures.count) failures."
     }
 

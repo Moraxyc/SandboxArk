@@ -9,7 +9,7 @@ import Glibc
 /// are hashed into staging first, so the archive is built from bytes already validated.
 struct SKBackupCoordinator {
     enum State: String, Sendable {
-        case prepared, scanning, staging, archiving, verifying, readyToShare
+        case prepared, scanning, staging, checkingDatabases, archiving, verifying, readyToShare
         case cancelled, failed, cleanupRequired
     }
 
@@ -99,7 +99,7 @@ struct SKBackupCoordinator {
             var plan = MemberPlan()
             var remainingBytes = estimate.sourceBytes
             var unstableRoots: Set<String> = []
-            var unstableFiles = 0
+            var unstablePaths: Set<String> = []
             try stage(report: report,
                       home: home,
                       request: request,
@@ -107,14 +107,22 @@ struct SKBackupCoordinator {
                       plan: &plan,
                       remainingBytes: &remainingBytes,
                       unstableRoots: &unstableRoots,
-                      unstableFiles: &unstableFiles,
+                      unstablePaths: &unstablePaths,
                       progress: &progress)
             plan = try plan.completingDirectories(home: home,
                                                   reference: referenceTimestamp(request.createdAt))
+            let groups = try verifyDatabases(plan: plan,
+                                             report: report,
+                                             unstablePaths: unstablePaths,
+                                             transaction: transaction,
+                                             home: home,
+                                             request: request,
+                                             progress: &progress)
             let documents = try makeDocuments(report: report,
                                               plan: plan,
+                                              groups: groups,
                                               unstableRoots: unstableRoots,
-                                              unstableFiles: unstableFiles,
+                                              unstableFileCount: unstablePaths.count,
                                               request: request)
 
             transaction.set(.archiving)
@@ -173,7 +181,7 @@ struct SKBackupCoordinator {
                               plan: inout MemberPlan,
                               remainingBytes: inout Int64,
                               unstableRoots: inout Set<String>,
-                              unstableFiles: inout Int,
+                              unstablePaths: inout Set<String>,
                               progress: inout Progress) throws {
         for root in report.roots {
             for entry in root.entries where entry.excludedReason == nil && entry.error == nil {
@@ -201,7 +209,7 @@ struct SKBackupCoordinator {
                     } catch let error as SKError where error.code == .filesystemChangedDuringRead
                         && request.allowsPartialBackup {
                         unstableRoots.insert(root.relativePath)
-                        unstableFiles += 1
+                        unstablePaths.insert(entry.relativePath)
                     }
                 case .symlink, .special, .unknown:
                     continue
@@ -233,12 +241,16 @@ struct SKBackupCoordinator {
         var hasher = SKSHA256.Hasher()
         var copied: Int64 = 0
         var reported: Int64 = 0
+        var headerPrefix: [UInt8] = []
         var buffer = [UInt8](repeating: 0, count: SKZipWriter.chunkBytes)
         while true {
             if request.isCancelled() { throw cancelled() }
             let count = try SKArchiveIO.readChunk(from: opened.descriptor, into: &buffer)
             if count == 0 { break }
             let slice = buffer[0..<count]
+            if headerPrefix.count < SKSQLiteGroup.header.count {
+                headerPrefix.append(contentsOf: slice.prefix(SKSQLiteGroup.header.count - headerPrefix.count))
+            }
             try SKArchiveIO.write(slice, at: copied, to: target)
             hasher.update(slice)
             copied += Int64(count)
@@ -271,11 +283,111 @@ struct SKBackupCoordinator {
         }
         return MemberPlan.File(memberPath: memberPath,
                                root: root,
+                               sourcePath: entry.relativePath,
                                size: copied,
                                permissions: entry.permissions,
                                modifiedAt: entry.modifiedAt,
                                stagedName: stagedName,
+                               headerPrefix: headerPrefix,
                                sha256: hasher.finalize())
+    }
+
+    // MARK: - SQLite consistency
+
+    /// Groups the staged regular files into database units and, where a group is complete,
+    /// runs the Level 2 structural check on a disposable copy. A group that cannot be
+    /// checked is recorded with the reason and never presented as verified.
+    ///
+    /// The check runs before the manifest is built because the manifest carries the level,
+    /// method and warnings, and the archive's own reopening compares the manifest it finds
+    /// against the one this pass produced.
+    private static func verifyDatabases(plan: MemberPlan,
+                                        report: SKScanReport,
+                                        unstablePaths: Set<String>,
+                                        transaction: Transaction,
+                                        home: SKAuthorizedRoot,
+                                        request: Request,
+                                        progress: inout Progress) throws -> [SKSQLiteGroup.Group] {
+        let staged = plan.files.map {
+            SKSQLiteGroup.StagedFile(sourcePath: $0.sourcePath,
+                                     archivePath: $0.memberPath,
+                                     size: $0.size,
+                                     sha256: $0.sha256,
+                                     headerPrefix: $0.headerPrefix,
+                                     stagedName: $0.stagedName)
+        }
+        let collected = SKSQLiteGroup.collect(files: staged,
+                                              report: report,
+                                              unstablePaths: unstablePaths)
+        guard !collected.isEmpty else { return [] }
+
+        transaction.set(.checkingDatabases)
+        progress = Progress(state: .checkingDatabases,
+                            completedItems: 0,
+                            totalItems: collected.count,
+                            completedBytes: 0,
+                            totalBytes: 0)
+        request.onProgress(progress)
+
+        let validation = try SKBackupStaging.openOrCreateDirectory(name: Transaction.validationDirectory,
+                                                                   in: transaction.staging)
+        defer { SKArchiveIO.close(validation) }
+
+        var groups: [SKSQLiteGroup.Group] = []
+        for (index, group) in collected.enumerated() {
+            if request.isCancelled() { throw cancelled() }
+            groups.append(verify(group: group,
+                                 index: index,
+                                 plan: plan,
+                                 transaction: transaction,
+                                 home: home,
+                                 validation: validation,
+                                 request: request))
+            progress.completedItems += 1
+            request.onProgress(progress)
+        }
+        return groups
+    }
+
+    /// One group's check. Only a complete group is opened: a copy missing a sidecar would
+    /// describe a database the archive does not contain.
+    private static func verify(group: SKSQLiteGroup.Group,
+                               index: Int,
+                               plan: MemberPlan,
+                               transaction: Transaction,
+                               home: SKAuthorizedRoot,
+                               validation: Int32,
+                               request: Request) -> SKSQLiteGroup.Group {
+        guard group.complete, group.database.isPackaged else {
+            return group.skippingVerification()
+        }
+        var descriptors: [Int32] = []
+        defer { for descriptor in descriptors { SKArchiveIO.close(descriptor) } }
+        var inputs: [SKSQLiteInspector.Input] = []
+        var copyBytes: Int64 = 0
+        for member in group.members where member.isPackaged {
+            guard let file = plan.files.first(where: { $0.sourcePath == member.sourcePath }),
+                  let descriptor = try? SKArchiveIO.openReadOnly(name: file.stagedName,
+                                                                 in: transaction.staging) else {
+                return group.applying(SKSQLiteGroup.VerificationResult(outcome: .copyFailed))
+            }
+            descriptors.append(descriptor)
+            copyBytes += max(0, file.size)
+            inputs.append(SKSQLiteInspector.Input(copyName: "g\(index)-\(group.baseName)"
+                                                    + (member.role.sidecarSuffix ?? ""),
+                                                  isDatabase: member.role == .database,
+                                                  descriptor: descriptor,
+                                                  size: file.size))
+        }
+        if let available = try? SKBackupPreflight.availableBytes(home: home),
+           !SKBackupPreflight.hasHeadroom(availableBytes: available, remainingBytes: copyBytes) {
+            return group.applying(SKSQLiteGroup.VerificationResult(outcome: .storageInsufficient))
+        }
+        let result = SKSQLiteInspector.verify(inputs: inputs,
+                                              in: validation,
+                                              directoryPath: transaction.validationPath,
+                                              isCancelled: request.isCancelled)
+        return group.applying(result)
     }
 
     // MARK: - Archive pass
@@ -351,8 +463,9 @@ struct SKBackupCoordinator {
 
     private static func makeDocuments(report: SKScanReport,
                                       plan: MemberPlan,
+                                      groups: [SKSQLiteGroup.Group],
                                       unstableRoots: Set<String>,
-                                      unstableFiles: Int,
+                                      unstableFileCount: Int,
                                       request: Request) throws -> Documents {
         var roots: [SKManifestDocument.Root] = []
         var totalFiles = 0
@@ -375,6 +488,10 @@ struct SKBackupCoordinator {
                 excludedCounts: Dictionary(uniqueKeysWithValues: root.excludedCounts.map { ($0.key.rawValue, $0.value) })))
         }
 
+        // A database whose bytes are missing from the archive makes the whole archive
+        // partial, even when the root it lived in could be read.
+        let hasFailedGroup = groups.contains { $0.status == .failed }
+        let databaseWarnings = groups.filter { $0.status != .verified }.count
         let reference = referenceTimestamp(request.createdAt)
         let manifest = SKManifestDocument(
             app: request.app,
@@ -382,12 +499,14 @@ struct SKBackupCoordinator {
             backup: SKManifestDocument.Backup(createdAt: request.createdAt,
                                               kind: request.kind,
                                               mode: request.mode,
-                                              completeness: roots.allSatisfy(\.complete) ? .complete : .partial,
+                                              completeness: roots.allSatisfy(\.complete) && !hasFailedGroup
+                                                  ? .complete : .partial,
                                               totalFiles: totalFiles,
                                               totalBytes: totalBytes,
-                                              warningCount: report.unreadableCount + unstableFiles),
+                                              warningCount: report.unreadableCount + unstableFileCount
+                                                  + databaseWarnings),
             roots: roots,
-            sqliteGroups: [],
+            sqliteGroups: groups.map(\.jsonValue),
             appGroups: [])
         let manifestBytes = SKJSONEncoder.bytes(manifest.jsonValue())
         guard manifestBytes.count <= SKResourceLimits.maxManifestBytes else {
@@ -483,14 +602,25 @@ struct SKBackupCoordinator {
 /// archive, beside the transient transaction directories.
 private final class Transaction {
     static let payloadDirectory = "payload"
+    /// Disposable copies the SQLite check reads. They never leave staging, so a source is
+    /// opened for reading only inside this tree.
+    static let validationDirectory = "validation"
 
     let request: SKBackupCoordinator.Request
     let stagingParent: Int32
     let staging: Int32
     let partialName: String
     var archivePath: String { SKReservedPaths.stagingRoot + "/" + request.outputName }
+    /// Absolute path of the validation directory, when the platform resolved one. SQLite
+    /// opens by name, so without a path the Level 2 check reports unsupported.
+    var validationPath: String? {
+        guard let canonicalPath else { return nil }
+        return canonicalPath + "/" + SKReservedPaths.stagingRoot + "/" + directoryName
+            + "/" + Transaction.validationDirectory
+    }
 
     private let directoryName: String
+    private let canonicalPath: String?
     private var nextPayloadIndex = 0
     private var finalized = false
 
@@ -507,6 +637,7 @@ private final class Transaction {
         }
         self.request = request
         self.directoryName = identifier
+        self.canonicalPath = home.canonicalPath
         self.partialName = String(request.outputName.dropLast(".sandboxark".count)) + ".partial"
         self.stagingParent = parent
         self.staging = staging
@@ -590,6 +721,17 @@ private final class Transaction {
             }
         }
         try SKBackupStaging.removeDirectory(name: Transaction.payloadDirectory, in: staging)
+        if let validation = try? SKBackupStaging.openDirectory(name: Transaction.validationDirectory,
+                                                              in: staging) {
+            defer { SKArchiveIO.close(validation) }
+            var names: [String] = []
+            _ = try? SKPathResolver.enumerate(childrenOf: validation) { entry in
+                if case .child(let name) = entry { names.append(name) }
+                return true
+            }
+            for name in names { try SKBackupStaging.unlink(name, in: validation) }
+        }
+        try SKBackupStaging.removeDirectory(name: Transaction.validationDirectory, in: staging)
         try SKBackupStaging.unlink(partialName, in: staging)
         try SKBackupStaging.removeDirectory(name: directoryName, in: stagingParent)
     }
@@ -605,10 +747,15 @@ private struct MemberPlan {
     struct File {
         var memberPath: String
         var root: String
+        /// Home-relative source path; the manifest records members by archive path, but the
+        /// SQLite grouping and the staging copies are keyed by the source they came from.
+        var sourcePath: String
         var size: Int64
         var permissions: UInt16
         var modifiedAt: SKFileTimestamp
         var stagedName: String
+        /// First bytes of the staged copy, so grouping never reopens the source.
+        var headerPrefix: [UInt8]
         var sha256: SKSHA256.Digest
     }
 

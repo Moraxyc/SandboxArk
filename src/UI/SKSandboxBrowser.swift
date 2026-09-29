@@ -83,6 +83,7 @@ final class SKSandboxBrowserViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        registerContentSizeCategoryChanges()
         if relativePath == nil {
             title = String(localized: "Browse Sandbox", bundle: .sandboxark)
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close,
@@ -95,11 +96,20 @@ final class SKSandboxBrowserViewController: UITableViewController {
         }
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-            tableView.reloadData()
+    private func registerContentSizeCategoryChanges() {
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitPreferredContentSizeCategory.self],
+                                    action: #selector(contentSizeCategoryDidChange))
+        } else {
+            NotificationCenter.default.addObserver(self,
+                                                   selector: #selector(contentSizeCategoryDidChange),
+                                                   name: UIContentSizeCategory.didChangeNotification,
+                                                   object: nil)
         }
+    }
+
+    @objc private func contentSizeCategoryDidChange() {
+        tableView.reloadData()
     }
 
     override func viewDidDisappear(_ animated: Bool) {

@@ -114,13 +114,8 @@ struct SKManifestDocument: Equatable, Sendable {
     // MARK: - Decoding
 
     static func decode(_ value: SKJSONValue) throws -> SKManifestDocument {
+        try SKBackupFormatReaderV1.checkIdentity(value)
         let root = try SKJSONObjectReader(value, label: "manifest")
-        guard try root.string("format").utf8.elementsEqual(SKManifest.format.utf8) else {
-            throw SKManifestDocument.malformed("unknown format")
-        }
-        guard try root.integer("formatVersion") == Int64(SKManifest.formatVersion) else {
-            throw SKManifestDocument.malformed("unknown formatVersion")
-        }
 
         let appObject = try SKJSONObjectReader(try root.value("app"), label: "app")
         let app = App(bundleIdentifier: try appObject.string("bundleIdentifier", maxBytes: 255),

@@ -847,6 +847,118 @@
           "stringUnit" : { "state" : "translated", "value" : "已写入 %@/%@ 个归档条目" }
         }
       }
+    },
+    "Checking databases…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在检查数据库…" }
+        }
+      }
+    },
+    "Databases: %@ of %@ checked" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据库：已检查 %@/%@" }
+        }
+      }
+    },
+    "Not Verified: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "未验证：%@" }
+        }
+      }
+    },
+    "the database could not be read" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据库无法读取" }
+        }
+      }
+    },
+    "a database sidecar could not be read" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据库的附属文件无法读取" }
+        }
+      }
+    },
+    "the database changed while it was copied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "复制期间数据库发生了变化" }
+        }
+      }
+    },
+    "part of the database is excluded by policy" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据库的一部分被策略排除" }
+        }
+      }
+    },
+    "the group is incomplete, so it was not checked" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "该数据库组不完整，因此未检查" }
+        }
+      }
+    },
+    "this build cannot check databases" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "此构建无法检查数据库" }
+        }
+      }
+    },
+    "the database copy was busy" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据库副本正被占用" }
+        }
+      }
+    },
+    "the integrity check did not pass" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "完整性检查未通过" }
+        }
+      }
+    },
+    "the check did not finish in time" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "检查未在限时内完成" }
+        }
+      }
+    },
+    "the check exceeded its budget" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "检查超出预算" }
+        }
+      }
+    },
+    "the disposable copy could not be made" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "无法创建一次性副本" }
+        }
+      }
+    },
+    "there was not enough space to check" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "空间不足，无法检查" }
+        }
+      }
+    },
+    "the database is not in the archive" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "归档中没有该数据库" }
+        }
+      }
     }
   },
   "version" : "1.0"
