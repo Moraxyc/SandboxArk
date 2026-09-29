@@ -1,44 +1,49 @@
 # SandboxArk
 
-SandboxArk 能够注入到 iOS App 里，访问当前App可以访问的私有数据，并打包成一个备份文件保存。
+> [简体中文](README.zh-CN.md) | **English**
 
-适用环境：非越狱 iOS / iPadOS 16 及以上、arm64 设备，用 Feather 这类支持 dylib 注入的 sideload 签名工具安装。
+SandboxArk is an injectable iOS dynamic library that provides access to private data available to the host application and allows it to be exported as a backup archive.
 
-## 准备
+SandboxArk supports non-jailbroken arm64 devices running iOS / iPadOS 16 or later. It can be installed using sideloading tools that support dylib injection, such as Feather.
 
-- 一台装了 Xcode 和 iOS SDK 的 macOS 电脑，用来编译
-- 目标 App 的 IPA
-- 签名证书与描述文件，以及一个支持 dylib 注入的 sideload 签名工具
+## Prerequisites
 
-## 构建
+* A macOS computer with Xcode and the iOS SDK installed for building the project.
+* An IPA file of the target application.
+* A signing certificate, provisioning profile, and a sideloading tool that supports dylib injection.
 
-~~~sh
+## Building
+
+Run the build script:
+
+```sh
 sh scripts/build.sh
-~~~
+```
 
-产物在 `dist/SandboxArk/`：
+Build artifacts are generated in `dist/SandboxArk/`:
 
-- `sandboxark.dylib`：注入用的动态库
-- `SandboxArkTestHost.ipa`：项目自带的测试 App
-- `build-metadata.txt`：本次构建的 Xcode、iOS SDK、Swift、Clang 和目标配置
+* `sandboxark.dylib`: The dynamic library to inject into the target application.
+* `SandboxArkTestHost.ipa`: A test application included with the project.
+* `build-metadata.txt`: Build environment information, including Xcode, iOS SDK, Swift, Clang, and target configuration details.
 
-## 发布
+## Releases
 
-推送格式为 `vMAJOR.MINOR.PATCH` 的 tag 会触发 GitHub Actions，在 macOS 上构建并将 `sandboxark.dylib` 上传到 GitHub Release
+Pushing a Git tag matching the `vMAJOR.MINOR.PATCH` format triggers a GitHub Actions workflow that builds the project on macOS and uploads `sandboxark.dylib` to the corresponding GitHub Release.
 
-可以使用 GitHub CLI 验证 release asset 和构建证明（将版本替换为实际值）：
+The release asset and build attestation can be verified using the GitHub CLI. Replace the version in the following commands with the desired release version:
 
-~~~sh
+```sh
 gh release verify-asset v0.1.0 sandboxark.dylib --repo moraxyc/SandboxArk
 gh attestation verify sandboxark.dylib --repo moraxyc/SandboxArk
-~~~
+```
 
-## 注入并安装
+## Injection and Installation
 
-1. 在签名工具里导入目标 App 的 IPA。
-2. 加入 `sandboxark.dylib`
-3. 签名，安装到设备上。
+1. Import the target application's IPA into a compatible sideloading tool.
+2. Add `sandboxark.dylib` to the application.
+3. Sign the modified application and install it on the device.
 
-## 打开界面
+## Opening the Interface
 
-启动 App 后，在屏幕上三指长按约 1.5 秒即可打开 SandboxArk 的窗口
+After launching the application, press and hold the screen with three fingers for approximately 1.5 seconds to open the SandboxArk interface.
+
