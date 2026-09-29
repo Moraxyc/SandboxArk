@@ -65,6 +65,7 @@ final class SKSandboxBrowserViewController: UITableViewController {
     private var isClosing = false
     private var hasClosedRoot = false
     private var cachedSections: [Section]?
+    private let scanIndicator = UIActivityIndicatorView(style: .medium)
 
     init(home: SKAuthorizedRoot,
          relativePath: String? = nil,
@@ -84,13 +85,20 @@ final class SKSandboxBrowserViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         if relativePath == nil {
             title = String(localized: "Browse Sandbox", bundle: .sandboxark)
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close,
                                                                 target: self,
                                                                 action: #selector(doneTapped))
             startScan()
         } else {
             title = relativePath.map { $0.split(separator: "/").last.map(String.init) ?? $0 }
                 ?? String(localized: "Home", bundle: .sandboxark)
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
+            tableView.reloadData()
         }
     }
 
@@ -106,8 +114,13 @@ final class SKSandboxBrowserViewController: UITableViewController {
         guard !isScanning else { return }
         isScanning = true
         cancellation.reset()
+        cachedSections = nil
+        scanIndicator.startAnimating()
+        scanIndicator.isAccessibilityElement = false
         setRescanItem(isScanning: true)
         tableView.reloadData()
+        UIAccessibility.post(notification: .announcement,
+                             argument: String(localized: "Scanning the sandbox…", bundle: .sandboxark))
 
         let home = self.home
         let cancellation = self.cancellation
@@ -128,11 +141,15 @@ final class SKSandboxBrowserViewController: UITableViewController {
     private func finishScan(_ report: SKScanReport) {
         self.report = report
         isScanning = false
+        scanIndicator.stopAnimating()
         setRescanItem(isScanning: false)
         recordSummary(report)
         cachedSections = nil
         tableView.reloadData()
         if isClosing { closeRoot() }
+        if !isClosing {
+            UIAccessibility.post(notification: .announcement, argument: statusText(report.status))
+        }
     }
 
     private func setRescanItem(isScanning: Bool) {
@@ -140,11 +157,11 @@ final class SKSandboxBrowserViewController: UITableViewController {
         if isScanning {
             let item = UIBarButtonItem(title: String(localized: "Stop", bundle: .sandboxark),
                                        style: .plain, target: self, action: #selector(stopTapped))
-            navigationItem.leftBarButtonItem = item
+            navigationItem.leftBarButtonItems = [item, UIBarButtonItem(customView: scanIndicator)]
         } else {
             let item = UIBarButtonItem(title: String(localized: "Rescan", bundle: .sandboxark),
                                        style: .plain, target: self, action: #selector(rescanTapped))
-            navigationItem.leftBarButtonItem = item
+            navigationItem.leftBarButtonItems = [item]
         }
     }
 
@@ -183,6 +200,11 @@ final class SKSandboxBrowserViewController: UITableViewController {
     }
 
     private var scanSections: [Section] {
+        if isScanning {
+            return [Section(title: nil, items: [.message(String(
+                localized: cancellation.isCancelled ? "Stopping…" : "Scanning the sandbox…",
+                bundle: .sandboxark))])]
+        }
         guard let report else {
             return [Section(title: nil,
                             items: [.message(String(localized: "Scanning the sandbox…", bundle: .sandboxark))])]
@@ -306,10 +328,15 @@ final class SKSandboxBrowserViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var configuration = cell.defaultContentConfiguration()
-        configuration.secondaryTextProperties.numberOfLines = 2
+        configuration.textProperties.numberOfLines = 0
+        configuration.secondaryTextProperties.numberOfLines = 0
 
         switch sections[indexPath.section].items[indexPath.row] {
         case .detail(let title, let value):
+            configuration = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+                ? .subtitleCell() : .valueCell()
+            configuration.textProperties.numberOfLines = 0
+            configuration.secondaryTextProperties.numberOfLines = 0
             configuration.text = title
             configuration.secondaryText = value
             cell.selectionStyle = .none
@@ -387,7 +414,14 @@ final class SKSandboxBrowserViewController: UITableViewController {
     }
 
     @objc private func stopTapped() {
+        guard isScanning, !cancellation.isCancelled else { return }
         cancellation.cancel()
+        let text = String(localized: "Stopping…", bundle: .sandboxark)
+        navigationItem.leftBarButtonItems?.first?.title = text
+        navigationItem.leftBarButtonItems?.first?.isEnabled = false
+        cachedSections = nil
+        tableView.reloadData()
+        UIAccessibility.post(notification: .announcement, argument: text)
     }
 
     private func requestClose() {
@@ -428,7 +462,10 @@ final class SKFilePreviewViewController: UIViewController {
 
         textView.isEditable = false
         textView.alwaysBounceVertical = true
-        textView.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+        textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(
+            for: .monospacedSystemFont(ofSize: 17, weight: .regular))
+        textView.adjustsFontForContentSizeCategory = true
+        textView.accessibilityLabel = title
         textView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(textView)
         NSLayoutConstraint.activate([

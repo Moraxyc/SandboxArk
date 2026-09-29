@@ -4,7 +4,7 @@ import UIKit
 /// Backup confirmation, progress, cancellation and export handoff. The engine runs off the
 /// main thread and reports through its request, so every report reaches this screen on the
 /// main actor, and the screen owns the root descriptor until the worker has stopped.
-final class SKBackupFlowViewController: UIViewController {
+final class SKBackupFlowViewController: UIViewController, UIAdaptivePresentationControllerDelegate {
     /// The scope notice, the measured preflight and the running transaction are separate
     /// steps, so the user never confirms an estimate SandboxArk has not measured.
     private enum Phase {
@@ -33,10 +33,17 @@ final class SKBackupFlowViewController: UIViewController {
     private let statusLabel = UILabel()
     private let detailLabel = UILabel()
     private let messageLabel = UILabel()
+    private let summaryStack = UIStackView()
+    private let detailsButton = UIButton(type: .system)
+    private let detailsLabel = UILabel()
+    private var showingDetails = false
     private let progressView = UIProgressView(progressViewStyle: .default)
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let primaryButton = UIButton(type: .system)
-    private let secondaryButton = UIButton(type: .system)
+    private lazy var cancelItem = UIBarButtonItem(barButtonSystemItem: .cancel,
+                                                  target: self, action: #selector(closeTapped))
+    private lazy var closeItem = UIBarButtonItem(barButtonSystemItem: .close,
+                                                 target: self, action: #selector(closeTapped))
 
     private var phase: Phase = .scope
     private var runningState: SKBackupCoordinator.State?
@@ -60,9 +67,6 @@ final class SKBackupFlowViewController: UIViewController {
         super.viewDidLoad()
         title = String(localized: "Create Backup", bundle: .sandboxark)
         view.backgroundColor = .systemBackground
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close,
-                                                            target: self,
-                                                            action: #selector(closeTapped))
         configureLayout()
         request = makeRequest()
         if request == nil {
@@ -72,6 +76,19 @@ final class SKBackupFlowViewController: UIViewController {
         }
         render()
         SKRuntimeDiagnostics.record("backup_opened")
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory,
+           case .preflight = phase {
+            render()
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.presentationController?.delegate = self
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -88,8 +105,10 @@ final class SKBackupFlowViewController: UIViewController {
         statusLabel.font = .preferredFont(forTextStyle: .headline)
         statusLabel.adjustsFontForContentSizeCategory = true
         statusLabel.numberOfLines = 0
+        statusLabel.accessibilityTraits.insert(.header)
 
-        detailLabel.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        detailLabel.font = .preferredFont(forTextStyle: .body)
+        detailLabel.adjustsFontForContentSizeCategory = true
         detailLabel.textColor = .label
         detailLabel.numberOfLines = 0
 
@@ -99,47 +118,94 @@ final class SKBackupFlowViewController: UIViewController {
         messageLabel.numberOfLines = 0
 
         progressView.progress = 0
+        progressView.accessibilityLabel = String(localized: "Create Backup", bundle: .sandboxark)
+        spinner.isAccessibilityElement = false
+
+        var configuration = UIButton.Configuration.filled()
+        configuration.buttonSize = .large
+        configuration.titleLineBreakMode = .byWordWrapping
+        primaryButton.configuration = configuration
+        primaryButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        let minimumHeight = primaryButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
+        minimumHeight.priority = .defaultHigh
+        minimumHeight.isActive = true
 
         primaryButton.addTarget(self, action: #selector(primaryTapped), for: .touchUpInside)
-        secondaryButton.addTarget(self, action: #selector(secondaryTapped), for: .touchUpInside)
 
         let statusRow = UIStackView(arrangedSubviews: [spinner, statusLabel])
         statusRow.axis = .horizontal
         statusRow.spacing = 8
         statusRow.alignment = .center
 
-        let buttons = UIStackView(arrangedSubviews: [primaryButton, secondaryButton])
-        buttons.axis = .vertical
-        buttons.spacing = 12
-        buttons.alignment = .fill
+        detailsLabel.font = .preferredFont(forTextStyle: .footnote)
+        detailsLabel.adjustsFontForContentSizeCategory = true
+        detailsLabel.textColor = .secondaryLabel
+        detailsLabel.numberOfLines = 0
 
-        let stack = UIStackView(arrangedSubviews: [statusRow, progressView, detailLabel, messageLabel, buttons])
+        summaryStack.axis = .vertical
+        summaryStack.backgroundColor = .secondarySystemGroupedBackground
+        summaryStack.layer.cornerRadius = 12
+        summaryStack.layer.cornerCurve = .continuous
+        summaryStack.clipsToBounds = true
+
+        var detailsConfiguration = UIButton.Configuration.plain()
+        detailsConfiguration.title = String(localized: "Show Details", bundle: .sandboxark)
+        detailsConfiguration.buttonSize = .large
+        detailsConfiguration.titleLineBreakMode = .byWordWrapping
+        detailsButton.configuration = detailsConfiguration
+        detailsButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        let detailsMinimumHeight = detailsButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
+        detailsMinimumHeight.priority = .defaultHigh
+        detailsMinimumHeight.isActive = true
+        detailsButton.addTarget(self, action: #selector(detailsTapped), for: .touchUpInside)
+
+        let stack = UIStackView(arrangedSubviews: [statusRow, progressView, summaryStack, detailLabel,
+                                                  messageLabel, primaryButton, detailsButton, detailsLabel])
         stack.axis = .vertical
         stack.spacing = 20
         stack.alignment = .fill
         stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        scrollView.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
-            stack.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 24),
+            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -24),
+            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            stack.centerXAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerXAnchor),
+            stack.widthAnchor.constraint(equalTo: view.readableContentGuide.widthAnchor),
         ])
     }
 
     /// One place decides which actions a phase offers, so a button can never stay live for a
     /// step that has already finished.
-    private func setButtons(primary: String?, primaryEnabled: Bool = true, secondary: String?) {
-        primaryButton.setTitle(primary, for: .normal)
-        primaryButton.isHidden = primary == nil
-        primaryButton.isEnabled = primaryEnabled
-        secondaryButton.setTitle(secondary, for: .normal)
-        secondaryButton.isHidden = secondary == nil
+    private func setPrimaryButton(_ title: String?) {
+        primaryButton.configuration?.title = title
+        primaryButton.isHidden = title == nil
     }
 
     // MARK: - Rendering
 
     private func render() {
+        summaryStack.isHidden = true
+        detailLabel.isHidden = false
+        detailsButton.isHidden = true
+        detailsLabel.isHidden = true
+        view.backgroundColor = .systemBackground
+        switch phase {
+        case .scope, .scanning, .preflight, .running:
+            navigationItem.leftBarButtonItem = cancelItem
+            navigationItem.rightBarButtonItem = nil
+        case .verified, .failed:
+            navigationItem.leftBarButtonItem = nil
+            navigationItem.rightBarButtonItem = closeItem
+        }
+        cancelItem.isEnabled = !(isWorking && cancellation.isCancelled)
         switch phase {
         case .scope: renderScope()
         case .scanning: renderScanning()
@@ -147,6 +213,11 @@ final class SKBackupFlowViewController: UIViewController {
         case .running: renderRunning()
         case .verified(let outcome): renderVerified(outcome)
         case .failed(let error): renderFailure(error)
+        }
+        if isWorking && cancellation.isCancelled {
+            statusLabel.text = String(localized: "Cancelling…", bundle: .sandboxark)
+            progressView.isHidden = true
+            spinner.startAnimating()
         }
     }
 
@@ -162,8 +233,7 @@ final class SKBackupFlowViewController: UIViewController {
         """, bundle: .sandboxark)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: String(localized: "Scan Sandbox", bundle: .sandboxark),
-                   secondary: String(localized: "Cancel", bundle: .sandboxark))
+        setPrimaryButton(String(localized: "Scan Sandbox", bundle: .sandboxark))
     }
 
     private func renderScanning() {
@@ -176,28 +246,39 @@ final class SKBackupFlowViewController: UIViewController {
             bundle: .sandboxark)
         spinner.startAnimating()
         progressView.isHidden = true
-        setButtons(primary: nil, secondary: String(localized: "Cancel", bundle: .sandboxark))
+        setPrimaryButton(nil)
     }
 
     private func renderPreflight(_ preflight: Preflight) {
         let estimate = preflight.estimate
-        statusLabel.text = String(localized: "Ready to back up", bundle: .sandboxark)
-        var lines = [
-            String(localized: "Files: \(estimate.includedFiles.formatted())", bundle: .sandboxark),
-            String(localized: "Source data: \(SKBackupFlowViewController.format(estimate.sourceBytes))",
-                   bundle: .sandboxark),
-            String(localized: """
-            Space needed: \(SKBackupFlowViewController.format(estimate.requiredBytes)), \
-            including a \(SKBackupFlowViewController.format(estimate.reserveBytes)) reserve
-            """, bundle: .sandboxark),
-            String(localized: "Space available: \(SKBackupFlowViewController.format(preflight.availableBytes))",
-                   bundle: .sandboxark),
-        ]
-        if estimate.directoryMembers > 0 {
-            lines.insert(String(localized: "Folders: \(estimate.directoryMembers.formatted())",
-                                bundle: .sandboxark), at: 1)
+        statusLabel.text = preflight.blocked != nil
+            ? String(localized: "Not Enough Space", bundle: .sandboxark)
+            : String(localized: "Ready to back up", bundle: .sandboxark)
+        view.backgroundColor = .systemGroupedBackground
+        summaryStack.isHidden = false
+        detailLabel.isHidden = true
+        for row in summaryStack.arrangedSubviews {
+            summaryStack.removeArrangedSubview(row)
+            row.removeFromSuperview()
         }
-        detailLabel.text = lines.joined(separator: "\n")
+        addSummaryRow(String(localized: "Files", bundle: .sandboxark), estimate.includedFiles.formatted())
+        if estimate.directoryMembers > 0 {
+            addSummaryRow(String(localized: "Folders", bundle: .sandboxark), estimate.directoryMembers.formatted())
+        }
+        addSummaryRow(String(localized: "Source Data", bundle: .sandboxark), Self.format(estimate.sourceBytes))
+        addSummaryRow(String(localized: "Space Needed", bundle: .sandboxark), Self.format(estimate.requiredBytes))
+        addSummaryRow(String(localized: "Space Available", bundle: .sandboxark), Self.format(preflight.availableBytes))
+        detailsLabel.text = String(localized: """
+        Space needed: \(Self.format(estimate.requiredBytes)), \
+        including a \(Self.format(estimate.reserveBytes)) reserve
+        """, bundle: .sandboxark) + "\n\n" + String(localized: """
+        These numbers assume the worst case, including one uncompressed copy of the \
+        files while the archive is built. Every file is checked again as it is copied.
+        """, bundle: .sandboxark)
+        detailsButton.isHidden = false
+        detailsLabel.isHidden = !showingDetails
+        detailsButton.configuration?.title = String(localized: showingDetails ? "Hide Details" : "Show Details",
+                                                    bundle: .sandboxark)
 
         if preflight.blocked != nil {
             messageLabel.text = String(localized: """
@@ -205,10 +286,8 @@ final class SKBackupFlowViewController: UIViewController {
             Free up space, then scan again.
             """, bundle: .sandboxark)
         } else if preflight.report.isComplete {
-            messageLabel.text = String(localized: """
-            These numbers assume the worst case, including one uncompressed copy of the \
-            files while the archive is built. Every file is checked again as it is copied.
-            """, bundle: .sandboxark)
+            messageLabel.text = String(localized: "The scan is complete. You can start the backup.",
+                                       bundle: .sandboxark)
         } else {
             messageLabel.text = incompleteReason(preflight.report)
                 + " " + String(localized: """
@@ -219,17 +298,42 @@ final class SKBackupFlowViewController: UIViewController {
         spinner.stopAnimating()
         progressView.isHidden = true
         let partial = !preflight.report.isComplete
-        setButtons(primary: String(localized: partial ? "Back Up Anyway" : "Start Backup",
-                                   bundle: .sandboxark),
-                   primaryEnabled: preflight.blocked == nil,
-                   secondary: String(localized: "Cancel", bundle: .sandboxark))
+        if preflight.blocked != nil {
+            setPrimaryButton(String(localized: "Scan Again", bundle: .sandboxark))
+        } else {
+            setPrimaryButton(String(localized: partial ? "Create Partial Backup" : "Start Backup",
+                                    bundle: .sandboxark))
+        }
+    }
+
+    private func addSummaryRow(_ title: String, _ value: String) {
+        var configuration: UIListContentConfiguration = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+            ? .subtitleCell() : .valueCell()
+        configuration.text = title
+        configuration.secondaryText = value
+        configuration.textProperties.numberOfLines = 0
+        configuration.secondaryTextProperties.numberOfLines = 0
+        summaryStack.addArrangedSubview(UIListContentView(configuration: configuration))
+    }
+
+    @objc private func detailsTapped() {
+        showingDetails.toggle()
+        detailsLabel.isHidden = !showingDetails
+        detailsButton.configuration?.title = String(localized: showingDetails ? "Hide Details" : "Show Details",
+                                                    bundle: .sandboxark)
+        UIAccessibility.post(notification: .layoutChanged, argument: detailsButton)
     }
 
     private func renderRunning() {
         let state = runningState ?? runningCounters?.state ?? .prepared
         statusLabel.text = SKBackupFlowViewController.status(for: state)
-        if let counters = runningCounters, counters.totalItems > 0 {
-            progressView.progress = Float(Double(counters.completedItems) / Double(counters.totalItems))
+        progressView.accessibilityLabel = statusLabel.text
+        if state != .verifying, let counters = runningCounters,
+           counters.state == state, counters.totalBytes > 0 || counters.totalItems > 0 {
+            let fraction = counters.totalBytes > 0
+                ? Double(counters.completedBytes) / Double(counters.totalBytes)
+                : Double(counters.completedItems) / Double(counters.totalItems)
+            progressView.progress = Float(min(1, max(0, fraction)))
             progressView.isHidden = false
             spinner.stopAnimating()
             detailLabel.text = SKBackupFlowViewController.counters(counters)
@@ -239,14 +343,14 @@ final class SKBackupFlowViewController: UIViewController {
             detailLabel.text = state == .verifying
                 ? String(localized: "Reading the archive back and checking every file against its checksum.",
                          bundle: .sandboxark)
-                : String(localized: "Starting the backup.", bundle: .sandboxark)
+                : SKBackupFlowViewController.status(for: state)
         }
         messageLabel.text = String(localized: """
         Cancel stops the backup and removes this transaction's temporary files. Only a fully \
         verified archive can be exported.
         """, bundle: .sandboxark)
-        setButtons(primary: nil, secondary: String(localized: "Cancel", bundle: .sandboxark))
-        announce(state)
+        setPrimaryButton(nil)
+        if !cancellation.isCancelled { announce(state) }
     }
 
     private func renderVerified(_ outcome: SKBackupCoordinator.Outcome) {
@@ -272,14 +376,12 @@ final class SKBackupFlowViewController: UIViewController {
         detailLabel.text = lines.joined(separator: "\n")
 
         messageLabel.text = String(localized: """
-        Export hands the archive to the share sheet, and SandboxArk cannot tell whether the \
-        export finished. SandboxArk keeps its own copy in temporary storage, which the system \
-        may reclaim at any time; your next backup replaces it.
+        Export and keep a copy of your backup. The copy in this app is temporary: the system \
+        may remove it, and your next backup replaces it.
         """, bundle: .sandboxark)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: String(localized: "Export…", bundle: .sandboxark),
-                   secondary: String(localized: "Done", bundle: .sandboxark))
+        setPrimaryButton(String(localized: "Export…", bundle: .sandboxark))
     }
 
     private func renderFailure(_ error: SKError) {
@@ -291,8 +393,7 @@ final class SKBackupFlowViewController: UIViewController {
         messageLabel.text = stagingState(for: error)
         spinner.stopAnimating()
         progressView.isHidden = true
-        setButtons(primary: cancelled ? nil : String(localized: "Try Again", bundle: .sandboxark),
-                   secondary: String(localized: "Close", bundle: .sandboxark))
+        setPrimaryButton(cancelled ? nil : String(localized: "Try Again", bundle: .sandboxark))
     }
 
     /// One sentence the user can act on. The code, stage and reason stay in the diagnostics
@@ -345,12 +446,17 @@ final class SKBackupFlowViewController: UIViewController {
 
     private func startScan() {
         guard let request, !isWorking else { return }
+        showingDetails = false
         phase = .scanning
         runningState = nil
         runningCounters = nil
         render()
         let home = self.home
         runOffMain({ try SKBackupCoordinator.scan(home: home, request: request) }) { result in
+            if self.cancellation.isCancelled {
+                self.fail(SKError(code: .cancelled))
+                return
+            }
             switch result {
             case .success(let report): self.showPreflight(for: report)
             case .failure(let error): self.fail(error)
@@ -358,8 +464,7 @@ final class SKBackupFlowViewController: UIViewController {
         }
     }
 
-    /// The measured estimate the user confirms. When free space is short the numbers stay
-    /// visible and only the start action closes, so the refusal is not a mystery.
+    /// Keep the measured estimate visible when space is insufficient so the user can free space and rescan.
     private func showPreflight(for report: SKScanReport) {
         let estimate = SKBackupPreflight.estimate(report: report)
         let available: Int64
@@ -384,11 +489,12 @@ final class SKBackupFlowViewController: UIViewController {
                                      availableBytes: available,
                                      blocked: blocked))
         render()
+        UIAccessibility.post(notification: .announcement, argument: statusLabel.text)
     }
 
     private func startRun(_ preflight: Preflight) {
         guard var request, !isWorking else { return }
-        // The start action is labelled "Back Up Anyway" for an incomplete scan, so the
+        // The start action is labelled "Create Partial Backup" for an incomplete scan, so the
         // flag is the user's explicit acceptance, not a default.
         request.allowsPartialBackup = !preflight.report.isComplete
         phase = .running
@@ -415,8 +521,10 @@ final class SKBackupFlowViewController: UIViewController {
             releaseHome()
         case .failure(let error):
             fail(error)
+            return
         }
         render()
+        UIAccessibility.post(notification: .announcement, argument: statusLabel.text)
     }
 
     private func fail(_ error: SKError) {
@@ -425,6 +533,7 @@ final class SKBackupFlowViewController: UIViewController {
         SKRuntimeDiagnostics.record("backup_failed;code=\(error.code.rawValue);"
             + "stage=\(error.stage ?? "backup")")
         render()
+        UIAccessibility.post(notification: .announcement, argument: statusLabel.text)
     }
 
     /// Runs one engine step off the main thread. The step captures only sendable values, so
@@ -432,9 +541,11 @@ final class SKBackupFlowViewController: UIViewController {
     private func runOffMain<Value: Sendable>(_ step: @escaping @Sendable () throws -> Value,
                                              then: @escaping @MainActor (Result<Value, SKError>) -> Void) {
         isWorking = true
+        navigationController?.isModalInPresentation = true
         cancellation.reset()
         let deliver: @MainActor (Result<Value, SKError>) -> Void = { result in
             self.isWorking = false
+            self.navigationController?.isModalInPresentation = false
             if self.isDismissed { self.releaseHome() }
             then(result)
         }
@@ -467,6 +578,7 @@ final class SKBackupFlowViewController: UIViewController {
     /// report that lands after the transaction ended is ignored.
     private func apply(state: SKBackupCoordinator.State) {
         guard case .running = phase else { return }
+        if runningState != state { runningCounters = nil }
         runningState = state
         render()
     }
@@ -522,20 +634,41 @@ final class SKBackupFlowViewController: UIViewController {
     @objc private func primaryTapped() {
         switch phase {
         case .scope: startScan()
-        case .preflight(let preflight): startRun(preflight)
+        case .preflight(let preflight):
+            if preflight.blocked != nil {
+                startScan()
+            } else {
+                startRun(preflight)
+            }
         case .verified(let outcome): export(outcome)
         case .failed: startScan()
         case .scanning, .running: break
         }
     }
 
-    @objc private func secondaryTapped() {
+    @objc private func closeTapped() {
+        if isWorking {
+            cancellation.cancel()
+            render()
+            UIAccessibility.post(notification: .announcement, argument: statusLabel.text)
+            return
+        }
         cancellation.cancel()
         dismiss(animated: true)
     }
 
-    @objc private func closeTapped() {
-        secondaryTapped()
+    func presentationControllerDidAttemptToDismiss(_ presentationController: UIPresentationController) {
+        guard isWorking, !cancellation.isCancelled, presentedViewController == nil else { return }
+        let alert = UIAlertController(
+            title: String(localized: "Cancel This Task?", bundle: .sandboxark),
+            message: String(localized: "Cancelling stops the current task and removes its temporary files. Wait for cleanup to finish before closing.", bundle: .sandboxark),
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: String(localized: "Keep Working", bundle: .sandboxark), style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "Cancel Task", bundle: .sandboxark), style: .destructive) { [weak self] _ in
+            guard let self, self.isWorking else { return }
+            self.closeTapped()
+        })
+        present(alert, animated: true)
     }
 
     // MARK: - Request
@@ -568,7 +701,8 @@ final class SKBackupFlowViewController: UIViewController {
 
     private static func status(for state: SKBackupCoordinator.State) -> String {
         switch state {
-        case .prepared, .scanning: String(localized: "Scanning the sandbox…", bundle: .sandboxark)
+        case .prepared: String(localized: "Starting the backup.", bundle: .sandboxark)
+        case .scanning: String(localized: "Scanning the sandbox…", bundle: .sandboxark)
         case .staging: String(localized: "Copying files…", bundle: .sandboxark)
         case .archiving: String(localized: "Writing the archive…", bundle: .sandboxark)
         case .verifying: String(localized: "Verifying the archive…", bundle: .sandboxark)
@@ -585,9 +719,9 @@ final class SKBackupFlowViewController: UIViewController {
         var text: String
         switch counters.state {
         case .archiving:
-            text = String(localized: "Wrote \(completed) of \(total) files", bundle: .sandboxark)
+            text = String(localized: "Wrote \(completed) of \(total) archive entries", bundle: .sandboxark)
         default:
-            text = String(localized: "Backed up \(completed) of \(total) files", bundle: .sandboxark)
+            text = String(localized: "Copied \(completed) of \(total) files", bundle: .sandboxark)
         }
         if counters.totalBytes > 0 {
             text += String(localized: " · \(format(counters.completedBytes)) of \(format(counters.totalBytes))",

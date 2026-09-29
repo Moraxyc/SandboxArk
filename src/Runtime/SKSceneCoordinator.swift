@@ -1,7 +1,7 @@
 import UIKit
 
 /// Per-scene runtime state: trigger registration, SandboxArk window presentation, and
-/// teardown on deactivate or disconnect. State is keyed by scene, because one process-wide
+/// privacy on deactivate and teardown on disconnect. State is keyed by scene, because one process-wide
 /// "current window" would break on iPad multiwindow.
 @MainActor
 final class SKSceneCoordinator {
@@ -44,6 +44,7 @@ final class SKSceneCoordinator {
     @objc private func refreshHosts() {
         for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
         where scene.activationState == .foregroundActive {
+            scenes[ObjectIdentifier(scene)]?.utilityWindow?.setPrivacyScreenVisible(false)
             adoptHost(in: scene)
         }
     }
@@ -100,13 +101,13 @@ final class SKSceneCoordinator {
         SKRuntimeDiagnostics.record("overlay_opened;overlay_key=\(overlay.isKeyWindow)")
     }
 
-    private func makeRootViewController(for scene: UIWindowScene) -> SKRootViewController {
+    private func makeRootViewController(for scene: UIWindowScene) -> UINavigationController {
         let controller = SKRootViewController()
         controller.onClose = { [weak self, weak scene] in
             guard let scene else { return }
             self?.dismiss(overlayFor: scene, reason: "user")
         }
-        return controller
+        return UINavigationController(rootViewController: controller)
     }
 
     private func dismiss(overlayFor scene: UIWindowScene, reason: String) {
@@ -121,7 +122,7 @@ final class SKSceneCoordinator {
     @objc private func sceneWillDeactivate(_ notification: Notification) {
         guard let scene = notification.object as? UIWindowScene else { return }
         SKRuntimeDiagnostics.record("scene_will_deactivate")
-        dismiss(overlayFor: scene, reason: "scene_deactivated")
+        scenes[ObjectIdentifier(scene)]?.utilityWindow?.setPrivacyScreenVisible(true)
         scenes[ObjectIdentifier(scene)]?.trigger?.isEnabled = false
     }
 

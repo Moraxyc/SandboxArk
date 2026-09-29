@@ -1,6 +1,118 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Stopping…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在停止…" }
+        }
+      }
+    },
+    "Not Enough Space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "空间不足" }
+        }
+      }
+    },
+    "Scan Again" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "重新扫描" }
+        }
+      }
+    },
+    "Folders" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "文件夹" }
+        }
+      }
+    },
+    "Source Data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "数据总量" }
+        }
+      }
+    },
+    "Space Needed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "所需空间" }
+        }
+      }
+    },
+    "Space Available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "可用空间" }
+        }
+      }
+    },
+    "Show Details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "显示详情" }
+        }
+      }
+    },
+    "Hide Details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "隐藏详情" }
+        }
+      }
+    },
+    "The scan is complete. You can start the backup." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "扫描完成，可以开始备份。" }
+        }
+      }
+    },
+    "Export and keep a copy of your backup. The copy in this app is temporary: the system may remove it, and your next backup replaces it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "请导出并保留备份副本。App 内的副本仅临时保存，系统可能将其清除，下次备份也会将其替换。" }
+        }
+      }
+    },
+    "Cancel This Task?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消当前任务？" }
+        }
+      }
+    },
+    "Cancelling stops the current task and removes its temporary files. Wait for cleanup to finish before closing." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消会停止当前任务并删除其临时文件。请等待清理完成后再关闭。" }
+        }
+      }
+    },
+    "Keep Working" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "继续任务" }
+        }
+      }
+    },
+    "Cancel Task" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "取消任务" }
+        }
+      }
+    },
+    "Cancelling…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "正在取消…" }
+        }
+      }
+    },
     " · %@ of %@" : {
       "localizations" : {
         "zh-Hans" : {
@@ -43,17 +155,17 @@
         }
       }
     },
-    "Back Up Anyway" : {
+    "Create Partial Backup" : {
       "localizations" : {
         "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "仍然备份" }
+          "stringUnit" : { "state" : "translated", "value" : "创建部分备份" }
         }
       }
     },
-    "Backed up %@ of %@ files" : {
+    "Copied %@ of %@ files" : {
       "localizations" : {
         "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "已备份 %@/%@ 个文件" }
+          "stringUnit" : { "state" : "translated", "value" : "已复制 %@/%@ 个文件" }
         }
       }
     },
@@ -89,13 +201,6 @@
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : { "state" : "translated", "value" : "缓存" }
-        }
-      }
-    },
-    "Cancel" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "取消" }
         }
       }
     },
@@ -190,13 +295,6 @@
         }
       }
     },
-    "Done" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "完成" }
-        }
-      }
-    },
     "Excluded" : {
       "localizations" : {
         "zh-Hans" : {
@@ -215,13 +313,6 @@
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : { "state" : "translated", "value" : "已排除：%@" }
-        }
-      }
-    },
-    "Export hands the archive to the share sheet, and SandboxArk cannot tell whether the export finished. SandboxArk keeps its own copy in temporary storage, which the system may reclaim at any time; your next backup replaces it." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "导出会把归档交给分享面板，SandboxArk 无法得知导出是否完成。SandboxArk 自己的副本放在临时存储里，系统随时可能回收它；下一次备份会替换这份副本。" }
         }
       }
     },
@@ -246,13 +337,6 @@
         }
       }
     },
-    "Files: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "文件：%@" }
-        }
-      }
-    },
     "Files: %@ · %@" : {
       "localizations" : {
         "zh-Hans" : {
@@ -264,13 +348,6 @@
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : { "state" : "translated", "value" : "文件夹" }
-        }
-      }
-    },
-    "Folders: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "文件夹：%@" }
         }
       }
     },
@@ -481,20 +558,6 @@
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : { "state" : "translated", "value" : "部分文件夹未能完整扫描。" }
-        }
-      }
-    },
-    "Source data: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "源数据：%@" }
-        }
-      }
-    },
-    "Space available: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "可用空间：%@" }
         }
       }
     },
@@ -778,10 +841,10 @@
         }
       }
     },
-    "Wrote %@ of %@ files" : {
+    "Wrote %@ of %@ archive entries" : {
       "localizations" : {
         "zh-Hans" : {
-          "stringUnit" : { "state" : "translated", "value" : "已写入 %@/%@ 个文件" }
+          "stringUnit" : { "state" : "translated", "value" : "已写入 %@/%@ 个归档条目" }
         }
       }
     }
